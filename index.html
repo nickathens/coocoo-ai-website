@@ -127,6 +127,14 @@
         .d-4 { animation-delay: 0.4s; }
         .d-5 { animation-delay: 0.5s; }
 
+        /* Hide native video play buttons (iOS) */
+        video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls {
+            display: none !important;
+            -webkit-appearance: none !important;
+        }
+
         /* Card Hover */
         .work-card .card-image {
             transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
@@ -792,25 +800,22 @@
             }
         });
 
-        // 3. Video Autoplay Manager (play only when visible — fixes iOS)
+        // 3. Video Autoplay Manager (pause off-screen for performance)
         document.addEventListener('DOMContentLoaded', () => {
             const videos = document.querySelectorAll('video[autoplay]');
 
-            // Pause all videos initially, let observer handle playback
-            videos.forEach(v => {
-                v.pause();
-            });
-
+            // Don't pause initially — let native autoplay work (iOS needs this)
+            // Only pause when scrolled out of view for performance
             const videoObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const video = entry.target;
                     if (entry.isIntersecting) {
-                        video.play().catch(() => {}); // Silently handle if browser blocks
+                        video.play().catch(() => {});
                     } else {
                         video.pause();
                     }
                 });
-            }, { threshold: 0.25 });
+            }, { threshold: 0.1 });
 
             videos.forEach(video => videoObserver.observe(video));
         });
