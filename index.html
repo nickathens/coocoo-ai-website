@@ -130,9 +130,17 @@
         /* Hide native video play buttons (iOS) */
         video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-panel,
-        video::-webkit-media-controls {
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-overlay-play-button {
             display: none !important;
             -webkit-appearance: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Hide native controls container completely */
+        video::-webkit-media-controls-enclosure {
+            display: none !important;
         }
 
         /* Card Hover */
@@ -237,7 +245,7 @@
         
         <!-- Video Background Layer -->
         <div class="absolute inset-0 z-0">
-            <video autoplay="" loop="" muted="" playsinline="" webkit-playsinline="" class="w-full h-full object-cover scale-105 opacity-80">
+            <video id="hero-video" autoplay="" loop="" muted="" playsinline="" webkit-playsinline="" disableRemotePlayback="" x-webkit-airplay="deny" class="w-full h-full object-cover scale-105 opacity-80">
                 <source src="bg-video.mp4" type="video/mp4">
             </video>
             
@@ -800,12 +808,39 @@
             }
         });
 
-        // 3. Video Autoplay Manager (pause off-screen for performance)
+        // 3. Video Autoplay Manager
         document.addEventListener('DOMContentLoaded', () => {
             const videos = document.querySelectorAll('video[autoplay]');
 
-            // Don't pause initially — let native autoplay work (iOS needs this)
-            // Only pause when scrolled out of view for performance
+            // Force play on first touch (iOS requires user gesture for some videos)
+            let hasInteracted = false;
+            function forcePlayAll() {
+                if (hasInteracted) return;
+                hasInteracted = true;
+                videos.forEach(v => {
+                    v.play().catch(() => {});
+                });
+                document.removeEventListener('touchstart', forcePlayAll);
+                document.removeEventListener('click', forcePlayAll);
+                document.removeEventListener('scroll', forcePlayAll);
+            }
+            document.addEventListener('touchstart', forcePlayAll, { once: true, passive: true });
+            document.addEventListener('click', forcePlayAll, { once: true });
+            document.addEventListener('scroll', forcePlayAll, { once: true, passive: true });
+
+            // Retry autoplay for any video that stalls
+            videos.forEach(video => {
+                video.addEventListener('stalled', () => {
+                    setTimeout(() => video.play().catch(() => {}), 500);
+                });
+                video.addEventListener('suspend', () => {
+                    if (video.paused) {
+                        setTimeout(() => video.play().catch(() => {}), 500);
+                    }
+                });
+            });
+
+            // Pause off-screen for performance
             const videoObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const video = entry.target;
