@@ -462,24 +462,29 @@
             </h2>
             <p class="text-zinc-400 mb-10 text-lg">Have a crazy idea? We have the GPUs.</p>
             
-            <form action="mailto:info@coocooai.com" method="post" enctype="text/plain" class="max-w-md mx-auto space-y-4 text-left">
+            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="max-w-md mx-auto space-y-4 text-left">
+                <input type="hidden" name="access_key" value="ae9dc04d-c5c9-48f4-b46f-e80050b74783">
+                <input type="hidden" name="subject" value="New inquiry from CooCoo AI website">
+                <input type="hidden" name="from_name" value="CooCoo AI Website">
+                <input type="checkbox" name="botcheck" class="hidden" style="display:none">
+
                 <div class="flex flex-col gap-1 reveal-element delay-100">
                     <label for="email" class="text-xs text-zinc-500 font-medium ml-1">Email</label>
-                    <input type="email" name="email" required="" placeholder="Enter your email" class="focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-600 text-sm text-white bg-zinc-900/80 w-full border-zinc-800 border rounded-lg pt-3 pr-4 pb-3 pl-4" id="email">
+                    <input type="email" name="email" required placeholder="Enter your email" class="focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-600 text-sm text-white bg-zinc-900/80 w-full border-zinc-800 border rounded-lg pt-3 pr-4 pb-3 pl-4" id="email">
                 </div>
-                
+
                 <div class="flex flex-col gap-1 reveal-element delay-200">
                     <label for="message" class="text-xs text-zinc-500 font-medium ml-1">Message</label>
-                    <textarea id="message" name="message" rows="4" required="" placeholder="Tell us about your project..." class="focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-600 resize-none text-sm text-white bg-zinc-900/80 w-full border-zinc-800 border rounded-lg pt-3 pr-4 pb-3 pl-4"></textarea>
+                    <textarea id="message" name="message" rows="4" required placeholder="Tell us about your project..." class="focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-600 resize-none text-sm text-white bg-zinc-900/80 w-full border-zinc-800 border rounded-lg pt-3 pr-4 pb-3 pl-4"></textarea>
                 </div>
 
                 <div class="reveal-element delay-300">
-                    <button type="submit" class="btn-shimmer hover:bg-zinc-200 transition-transform active:scale-95 flex text-sm font-semibold text-black bg-white w-full rounded-lg mt-2 pt-3 pr-6 pb-3 pl-6 gap-x-2 gap-y-2 items-center justify-center">
+                    <button type="submit" id="submit-btn" class="btn-shimmer hover:bg-zinc-200 transition-transform active:scale-95 flex text-sm font-semibold text-black bg-white w-full rounded-lg mt-2 pt-3 pr-6 pb-3 pl-6 gap-x-2 gap-y-2 items-center justify-center">
                         Send Message
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="send" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
                     </button>
                 </div>
-                <p class="text-[10px] text-zinc-600 text-center mt-2 reveal-element delay-400">No spam. Only art.</p>
+                <p id="form-status" class="text-[10px] text-zinc-600 text-center mt-2 reveal-element delay-400">No spam. Only art.</p>
             </form>
         </div>
     </section>
@@ -611,6 +616,41 @@
             if (event.key === "Escape") {
                 closeVideoModal();
             }
+        });
+
+        // 3. Contact Form Submission
+        const form = document.getElementById('contact-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const formStatus = document.getElementById('form-status');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Sending...';
+            formStatus.textContent = '';
+
+            try {
+                const res = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.fromEntries(new FormData(form)))
+                });
+                const data = await res.json();
+                if (data.success) {
+                    formStatus.textContent = 'Message sent. We\'ll be in touch.';
+                    formStatus.className = 'text-xs text-green-400 text-center mt-2';
+                    form.reset();
+                } else {
+                    formStatus.textContent = 'Something went wrong. Try again.';
+                    formStatus.className = 'text-xs text-red-400 text-center mt-2';
+                }
+            } catch (err) {
+                formStatus.textContent = 'Network error. Try again.';
+                formStatus.className = 'text-xs text-red-400 text-center mt-2';
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Send Message <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>';
         });
     </script>
 
