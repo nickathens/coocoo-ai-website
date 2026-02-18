@@ -157,18 +157,7 @@
             -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
         }
         .work-slider-track {
-            animation: work-scroll 30s linear infinite;
             will-change: transform;
-        }
-        .work-slider-track:hover {
-            animation-play-state: paused;
-        }
-        .work-slider-track.dragging {
-            animation-play-state: paused;
-        }
-        @keyframes work-scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
         }
 
         /* --- Service Card Animations --- */
@@ -909,83 +898,114 @@
             videos.forEach(video => videoObserver.observe(video));
         });
 
-        // 4. Work Slider - Drag to scroll
+        // 4. Work Slider - Drag to scroll (no auto-animation, manual drag only)
         (function() {
             const track = document.getElementById('work-slider-track');
             if (!track) return;
+
             let isDragging = false;
             let startX = 0;
             let currentTranslate = 0;
             let prevTranslate = 0;
+            let velocity = 0;
+            let lastX = 0;
+            let lastTime = 0;
+            let animFrame = null;
 
-            function getTranslateX() {
-                const style = window.getComputedStyle(track);
-                const matrix = new DOMMatrix(style.transform);
-                return matrix.m41;
+            // Kill CSS animation, use manual position
+            track.style.animation = 'none';
+
+            const halfWidth = track.scrollWidth / 2;
+
+            // Wrap position so it stays within -halfWidth..0 (seamless loop)
+            function wrapPos(x) {
+                let p = x % halfWidth;
+                if (p > 0) p -= halfWidth;
+                return p;
             }
 
-            track.addEventListener('mousedown', (e) => {
+            function setPosition(x) {
+                currentTranslate = wrapPos(x);
+                track.style.transform = `translateX(${currentTranslate}px)`;
+            }
+
+            // Auto-scroll (slow drift left)
+            let autoSpeed = -0.5; // px per frame
+            let autoRunning = true;
+
+            function autoScroll() {
+                if (autoRunning && !isDragging) {
+                    setPosition(currentTranslate + autoSpeed);
+                }
+                requestAnimationFrame(autoScroll);
+            }
+            requestAnimationFrame(autoScroll);
+
+            // Momentum deceleration after drag
+            function momentumLoop() {
+                if (Math.abs(velocity) < 0.5) {
+                    velocity = 0;
+                    autoRunning = true;
+                    return;
+                }
+                velocity *= 0.95;
+                setPosition(currentTranslate + velocity);
+                animFrame = requestAnimationFrame(momentumLoop);
+            }
+
+            function startDrag(x) {
                 isDragging = true;
-                startX = e.clientX;
-                prevTranslate = getTranslateX();
+                autoRunning = false;
+                if (animFrame) cancelAnimationFrame(animFrame);
+                velocity = 0;
+                startX = x;
+                lastX = x;
+                lastTime = Date.now();
+                prevTranslate = currentTranslate;
                 track.classList.add('dragging');
-                track.style.animation = 'none';
-                track.style.transform = `translateX(${prevTranslate}px)`;
+            }
+
+            function moveDrag(x) {
+                if (!isDragging) return;
+                const now = Date.now();
+                const dt = now - lastTime;
+                if (dt > 0) {
+                    velocity = (x - lastX) / dt * 16; // normalize to ~60fps
+                }
+                lastX = x;
+                lastTime = now;
+                const delta = x - startX;
+                setPosition(prevTranslate + delta);
+            }
+
+            function endDrag() {
+                if (!isDragging) return;
+                isDragging = false;
+                track.classList.remove('dragging');
+                // Kick off momentum
+                if (Math.abs(velocity) > 0.5) {
+                    animFrame = requestAnimationFrame(momentumLoop);
+                } else {
+                    autoRunning = true;
+                }
+            }
+
+            // Mouse events
+            track.addEventListener('mousedown', (e) => {
+                startDrag(e.clientX);
                 e.preventDefault();
             });
+            document.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+            document.addEventListener('mouseup', endDrag);
 
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                const delta = e.clientX - startX;
-                currentTranslate = prevTranslate + delta;
-                track.style.transform = `translateX(${currentTranslate}px)`;
-            });
-
-            document.addEventListener('mouseup', () => {
-                if (!isDragging) return;
-                isDragging = false;
-                track.classList.remove('dragging');
-                // Resume animation from current position
-                const halfWidth = track.scrollWidth / 2;
-                // Normalize position within -halfWidth to 0
-                let pos = currentTranslate % halfWidth;
-                if (pos > 0) pos -= halfWidth;
-                track.style.transform = '';
-                track.style.animation = '';
-                // Adjust animation offset
-                const progress = Math.abs(pos) / halfWidth;
-                track.style.animationDelay = `-${progress * 30}s`;
-            });
-
-            // Touch support
+            // Touch events
             track.addEventListener('touchstart', (e) => {
-                isDragging = true;
-                startX = e.touches[0].clientX;
-                prevTranslate = getTranslateX();
-                track.classList.add('dragging');
-                track.style.animation = 'none';
-                track.style.transform = `translateX(${prevTranslate}px)`;
+                startDrag(e.touches[0].clientX);
             }, { passive: true });
-
             document.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                const delta = e.touches[0].clientX - startX;
-                currentTranslate = prevTranslate + delta;
-                track.style.transform = `translateX(${currentTranslate}px)`;
+                moveDrag(e.touches[0].clientX);
             }, { passive: true });
-
-            document.addEventListener('touchend', () => {
-                if (!isDragging) return;
-                isDragging = false;
-                track.classList.remove('dragging');
-                const halfWidth = track.scrollWidth / 2;
-                let pos = currentTranslate % halfWidth;
-                if (pos > 0) pos -= halfWidth;
-                track.style.transform = '';
-                track.style.animation = '';
-                const progress = Math.abs(pos) / halfWidth;
-                track.style.animationDelay = `-${progress * 30}s`;
-            });
+            document.addEventListener('touchend', endDrag);
 
             // Prevent click on slides after drag
             let dragStartX = 0;
