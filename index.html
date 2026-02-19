@@ -1101,13 +1101,13 @@
             }
 
             // Mouse
-            arrowLeft.addEventListener('mousedown', () => startBoost(-1));
-            arrowRight.addEventListener('mousedown', () => startBoost(1));
+            arrowLeft.addEventListener('mousedown', () => startBoost(1));
+            arrowRight.addEventListener('mousedown', () => startBoost(-1));
             document.addEventListener('mouseup', () => { if (arrowBoost !== 0) stopBoost(); });
 
             // Touch
-            arrowLeft.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(-1); }, { passive: false });
-            arrowRight.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(1); }, { passive: false });
+            arrowLeft.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(1); }, { passive: false });
+            arrowRight.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(-1); }, { passive: false });
             document.addEventListener('touchend', () => { if (arrowBoost !== 0) stopBoost(); });
 
             // Prevent arrow clicks from bubbling
