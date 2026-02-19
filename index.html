@@ -159,6 +159,52 @@
         .work-slider-track {
             will-change: transform;
         }
+        .work-slider-track.dragging {
+            cursor: grabbing;
+        }
+
+        /* Slider Arrow Buttons */
+        .slider-arrow {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+        .work-slider-container:hover .slider-arrow {
+            opacity: 1;
+        }
+        .slider-arrow-left {
+            left: 0;
+            background: linear-gradient(to right, rgba(5,5,5,0.8), transparent);
+        }
+        .slider-arrow-right {
+            right: 0;
+            background: linear-gradient(to left, rgba(5,5,5,0.8), transparent);
+        }
+        .slider-arrow svg {
+            width: 24px;
+            height: 24px;
+            color: rgba(255,255,255,0.6);
+            transition: color 0.2s, transform 0.2s;
+        }
+        .slider-arrow:hover svg {
+            color: white;
+            transform: scale(1.2);
+        }
+        .slider-arrow:active svg {
+            transform: scale(1.1);
+        }
 
         /* --- Service Card Animations --- */
         /* Card 1: AI Generated - icon glitches/morphs */
@@ -359,6 +405,12 @@
 
         <!-- Horizontal Slider -->
         <div class="work-slider-container relative w-full overflow-hidden reveal-element delay-100">
+            <button class="slider-arrow slider-arrow-left" id="slider-arrow-left" aria-label="Scroll left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button class="slider-arrow slider-arrow-right" id="slider-arrow-right" aria-label="Scroll right">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
             <div class="work-slider-track flex" id="work-slider-track">
                 <!-- Set 1 -->
                 <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('iWtr96jxALU')">
@@ -978,26 +1030,36 @@
             videos.forEach(video => videoObserver.observe(video));
         });
 
-        // 4. Work Slider - Drag to scroll (no auto-animation, manual drag only)
+        // 4. Work Slider - Auto-scroll, drag, and arrow controls
         (function() {
             const track = document.getElementById('work-slider-track');
+            const arrowLeft = document.getElementById('slider-arrow-left');
+            const arrowRight = document.getElementById('slider-arrow-right');
             if (!track) return;
 
             let isDragging = false;
             let startX = 0;
             let currentTranslate = 0;
             let prevTranslate = 0;
-            let velocity = 0;
             let lastX = 0;
             let lastTime = 0;
-            let animFrame = null;
 
-            // Kill CSS animation, use manual position
+            // Speed state
+            const DEFAULT_SPEED = -0.5;    // px/frame, negative = scroll left
+            const BOOST_SPEED = 4;         // extra px/frame when arrow held
+            const FRICTION = 0.94;         // momentum decay per frame
+            const SETTLE_RATE = 0.08;      // how fast speed returns to default after release
+
+            let speed = DEFAULT_SPEED;     // current speed (used in main loop)
+            let dragVelocity = 0;          // velocity from drag gesture
+            let arrowBoost = 0;            // current arrow boost (-1 left, +1 right, 0 none)
+            let settling = false;          // true when decelerating back to default after drag
+
+            // Kill CSS animation
             track.style.animation = 'none';
 
             const halfWidth = track.scrollWidth / 2;
 
-            // Wrap position so it stays within -halfWidth..0 (seamless loop)
             function wrapPos(x) {
                 let p = x % halfWidth;
                 if (p > 0) p -= halfWidth;
@@ -1009,35 +1071,54 @@
                 track.style.transform = `translateX(${currentTranslate}px)`;
             }
 
-            // Auto-scroll (slow drift left)
-            let autoSpeed = -0.5; // px per frame
-            let autoRunning = true;
-
-            function autoScroll() {
-                if (autoRunning && !isDragging) {
-                    setPosition(currentTranslate + autoSpeed);
+            // Main animation loop
+            function tick() {
+                if (!isDragging) {
+                    if (settling) {
+                        // Decay drag velocity toward zero
+                        dragVelocity *= FRICTION;
+                        // Once drag velocity is negligible, blend back to default
+                        if (Math.abs(dragVelocity) < 0.3) {
+                            dragVelocity = 0;
+                            settling = false;
+                        }
+                        setPosition(currentTranslate + dragVelocity + DEFAULT_SPEED + arrowBoost * BOOST_SPEED);
+                    } else {
+                        // Normal: default auto-scroll + any arrow boost
+                        setPosition(currentTranslate + DEFAULT_SPEED + arrowBoost * BOOST_SPEED);
+                    }
                 }
-                requestAnimationFrame(autoScroll);
+                requestAnimationFrame(tick);
             }
-            requestAnimationFrame(autoScroll);
+            requestAnimationFrame(tick);
 
-            // Momentum deceleration after drag
-            function momentumLoop() {
-                if (Math.abs(velocity) < 0.5) {
-                    velocity = 0;
-                    autoRunning = true;
-                    return;
-                }
-                velocity *= 0.95;
-                setPosition(currentTranslate + velocity);
-                animFrame = requestAnimationFrame(momentumLoop);
+            // --- Arrow controls ---
+            function startBoost(direction) {
+                arrowBoost = direction; // -1 = faster left, +1 = right
+            }
+            function stopBoost() {
+                arrowBoost = 0;
             }
 
+            // Mouse
+            arrowLeft.addEventListener('mousedown', () => startBoost(-1));
+            arrowRight.addEventListener('mousedown', () => startBoost(1));
+            document.addEventListener('mouseup', () => { if (arrowBoost !== 0) stopBoost(); });
+
+            // Touch
+            arrowLeft.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(-1); }, { passive: false });
+            arrowRight.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(1); }, { passive: false });
+            document.addEventListener('touchend', () => { if (arrowBoost !== 0) stopBoost(); });
+
+            // Prevent arrow clicks from bubbling
+            arrowLeft.addEventListener('click', (e) => e.stopPropagation());
+            arrowRight.addEventListener('click', (e) => e.stopPropagation());
+
+            // --- Drag controls ---
             function startDrag(x) {
                 isDragging = true;
-                autoRunning = false;
-                if (animFrame) cancelAnimationFrame(animFrame);
-                velocity = 0;
+                settling = false;
+                dragVelocity = 0;
                 startX = x;
                 lastX = x;
                 lastTime = Date.now();
@@ -1050,27 +1131,24 @@
                 const now = Date.now();
                 const dt = now - lastTime;
                 if (dt > 0) {
-                    velocity = (x - lastX) / dt * 16; // normalize to ~60fps
+                    dragVelocity = (x - lastX) / dt * 16; // normalize to ~60fps
                 }
                 lastX = x;
                 lastTime = now;
-                const delta = x - startX;
-                setPosition(prevTranslate + delta);
+                setPosition(prevTranslate + (x - startX));
             }
 
             function endDrag() {
                 if (!isDragging) return;
                 isDragging = false;
                 track.classList.remove('dragging');
-                // Kick off momentum
-                if (Math.abs(velocity) > 0.5) {
-                    animFrame = requestAnimationFrame(momentumLoop);
-                } else {
-                    autoRunning = true;
+                // If there's velocity from dragging, let it decay back to default
+                if (Math.abs(dragVelocity) > 0.3) {
+                    settling = true;
                 }
             }
 
-            // Mouse events
+            // Mouse
             track.addEventListener('mousedown', (e) => {
                 startDrag(e.clientX);
                 e.preventDefault();
@@ -1078,7 +1156,7 @@
             document.addEventListener('mousemove', (e) => moveDrag(e.clientX));
             document.addEventListener('mouseup', endDrag);
 
-            // Touch events
+            // Touch
             track.addEventListener('touchstart', (e) => {
                 startDrag(e.touches[0].clientX);
             }, { passive: true });
@@ -1088,10 +1166,10 @@
             document.addEventListener('touchend', endDrag);
 
             // Prevent click on slides after drag
-            let dragStartX = 0;
-            track.addEventListener('mousedown', (e) => { dragStartX = e.clientX; });
+            let dragStartClickX = 0;
+            track.addEventListener('mousedown', (e) => { dragStartClickX = e.clientX; });
             track.addEventListener('click', (e) => {
-                if (Math.abs(e.clientX - dragStartX) > 10) {
+                if (Math.abs(e.clientX - dragStartClickX) > 10) {
                     e.stopPropagation();
                     e.preventDefault();
                 }
