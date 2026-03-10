@@ -1351,7 +1351,7 @@
             data[i * 4 + 3] = 255;
         }
 
-        const fps = 20;
+        const fps = 10;
         const interval = 1000 / fps;
         let lastTime = 0;
 
@@ -1360,13 +1360,14 @@
             if (now - lastTime < interval) return;
             lastTime = now;
 
-            // Generate grayscale noise (black, gray, white)
+            // Generate purple gradient noise
             for (let i = 0; i < totalPixels; i++) {
                 const idx = i * 4;
-                const v = Math.random() * 255 | 0;
-                data[idx]     = v;
-                data[idx + 1] = v;
-                data[idx + 2] = v;
+                const t = Math.random();
+                // Purple spectrum: dark purple → medium purple → light lavender
+                data[idx]     = (40 + t * 180) | 0;   // R: 40-220
+                data[idx + 1] = (10 + t * 100) | 0;   // G: 10-110
+                data[idx + 2] = (80 + t * 175) | 0;   // B: 80-255
             }
             offCtx.putImageData(imageData, 0, 0);
             const url = offscreen.toDataURL();
@@ -1462,10 +1463,8 @@
                 vec2 staticUV = floor(vec2(u, v) * cellCount) / cellCount;
                 vec3 noiseVal = texture2D(uNoiseTex, staticUV).rgb;
 
-                // Tint noise with purple and modulate by lighting
+                // Modulate purple noise by lighting
                 vec3 pixelColor = noiseVal * (0.4 + 0.6 * pixelDiffuse);
-                // Subtle purple tint over the grayscale static
-                pixelColor = mix(pixelColor, pixelColor * vec3(0.7, 0.5, 1.0), 0.3);
                 float scanline = step(0.5, fract(gl_FragCoord.y / 3.0));
                 pixelColor *= 0.85 + 0.15 * scanline;
 
@@ -1675,15 +1674,16 @@
 
             material.uniforms.uTime.value = clock.getElapsedTime();
 
-            // Update noise texture ~20fps (every 3rd frame at 60fps)
+            // Update noise texture ~10fps (every 6th frame at 60fps)
             noiseFrame++;
-            if (noiseFrame % 3 === 0) {
+            if (noiseFrame % 6 === 0) {
                 for (let i = 0; i < noiseTotalPixels; i++) {
                     const idx = i * 4;
-                    const v = Math.random() * 255 | 0;
-                    noiseData[idx]     = v;
-                    noiseData[idx + 1] = v;
-                    noiseData[idx + 2] = v;
+                    const t = Math.random();
+                    // Purple gradient: dark purple → light lavender
+                    noiseData[idx]     = (40 + t * 180) | 0;   // R: 40-220
+                    noiseData[idx + 1] = (10 + t * 100) | 0;   // G: 10-110
+                    noiseData[idx + 2] = (80 + t * 175) | 0;   // B: 80-255
                 }
                 noiseCtx.putImageData(noiseImageData, 0, 0);
                 noiseTex.needsUpdate = true;
