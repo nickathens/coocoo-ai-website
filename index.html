@@ -1323,14 +1323,28 @@
             varying vec3 vNormal;
             varying vec3 vPosition;
             varying vec3 vWorldNormal;
+            varying vec3 vObjectPos;
             uniform float uProgress; // 0 = pixelated, 0.5 = hybrid, 1 = velvet
             uniform float uPixelSize;
+            uniform float uTime;
 
             void main() {
-                vNormal = normalize(normalMatrix * normal);
                 vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
+                vObjectPos = position;
 
                 vec3 pos = position;
+                float originalRadius = length(position);
+
+                // Velvet: organic surface displacement (fibers shifting)
+                float velvetFactor = smoothstep(0.3, 0.7, uProgress);
+                if (velvetFactor > 0.01) {
+                    vec3 n = normalize(position);
+                    float wave1 = sin(n.x * 8.0 + uTime * 0.7) * sin(n.y * 6.0 + uTime * 0.5);
+                    float wave2 = sin(n.z * 10.0 - uTime * 0.9) * sin(n.x * 7.0 + uTime * 0.3);
+                    float wave3 = sin((n.x + n.y) * 5.0 + uTime * 0.6);
+                    float displacement = (wave1 + wave2 * 0.6 + wave3 * 0.4) * 0.012 * velvetFactor;
+                    pos += normalize(position) * displacement;
+                }
 
                 // Pixelation: snap vertices to grid
                 float pixelFactor = 1.0 - smoothstep(0.0, 0.6, uProgress);
@@ -1338,11 +1352,10 @@
 
                 if (gridSize > 0.001) {
                     pos = floor(pos / gridSize + 0.5) * gridSize;
-                    // Re-project onto sphere surface (keep radius)
-                    float originalRadius = length(position);
                     pos = normalize(pos) * originalRadius;
                 }
 
+                vNormal = normalize(normalMatrix * normal);
                 vPosition = (modelViewMatrix * vec4(pos, 1.0)).xyz;
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
             }
@@ -1352,16 +1365,18 @@
             varying vec3 vNormal;
             varying vec3 vPosition;
             varying vec3 vWorldNormal;
+            varying vec3 vObjectPos;
             uniform float uProgress;
+            uniform float uTime;
             uniform vec3 uLightDir;
 
             void main() {
                 vec3 normal = normalize(vNormal);
                 vec3 viewDir = normalize(-vPosition);
                 vec3 lightDir = normalize(uLightDir);
+                vec3 objN = normalize(vObjectPos);
 
-                // --- Pixelated look (phase 0) ---
-                // Quantized normals give faceted appearance
+                // --- Pixelated look ---
                 float pixelFactor = 1.0 - smoothstep(0.0, 0.6, uProgress);
                 vec3 quantNormal = normal;
                 if (pixelFactor > 0.01) {
@@ -1370,61 +1385,90 @@
                     quantNormal = normalize(quantNormal);
                 }
                 float pixelDiffuse = max(dot(quantNormal, lightDir), 0.0);
-                // Step-quantize the lighting for pixel look
                 pixelDiffuse = floor(pixelDiffuse * 4.0) / 4.0;
-
-                // Pixel color: digital purple-ish blue
                 vec3 pixelColor = vec3(0.35, 0.15, 0.65) * (0.3 + 0.7 * pixelDiffuse);
-                // Add scan lines
                 float scanline = step(0.5, fract(gl_FragCoord.y / 3.0));
                 pixelColor *= 0.85 + 0.15 * scanline;
 
-                // --- Velvet look (phase 1) ---
-
-                // Velvet rim lighting - stronger at grazing angles
+                // --- Velvet look (animated) ---
                 float rim = 1.0 - max(dot(viewDir, normal), 0.0);
-                float velvetRim = pow(rim, 2.5) * 1.2;
 
-                // Soft diffuse with wrap lighting
-                float wrapDiffuse = max(dot(normal, lightDir) * 0.5 + 0.5, 0.0);
+                // Animated shimmer: rim light shifts and pulses
+                float shimmer = sin(objN.x * 12.0 + uTime * 1.2) * sin(objN.y * 10.0 - uTime * 0.8);
+                float shimmer2 = sin(objN.z * 14.0 + uTime * 0.6) * sin((objN.x + objN.z) * 8.0 + uTime * 1.0);
+                float shimmerAmount = (shimmer * 0.5 + shimmer2 * 0.5) * 0.15 + 0.85; // oscillates 0.7-1.0
+
+                float velvetRim = pow(rim, 2.5) * 1.3 * shimmerAmount;
+
+                // Breathing diffuse — light direction subtly shifts
+                vec3 breathLight = lightDir + vec3(
+                    sin(uTime * 0.4) * 0.15,
+                    cos(uTime * 0.3) * 0.1,
+                    sin(uTime * 0.5) * 0.12
+                );
+                breathLight = normalize(breathLight);
+
+                float wrapDiffuse = max(dot(normal, breathLight) * 0.5 + 0.5, 0.0);
                 wrapDiffuse = pow(wrapDiffuse, 1.5);
 
-                // Velvet color: deep warm with purple rim glow
-                vec3 velvetBase = vec3(0.12, 0.08, 0.18) * (0.4 + 0.6 * wrapDiffuse);
+                // Fiber-like micro detail via high-freq noise
+                float fiber = sin(objN.x * 40.0 + objN.y * 30.0 + uTime * 0.4) *
+                              sin(objN.y * 35.0 + objN.z * 25.0 - uTime * 0.3);
+                float fiberDetail = 0.93 + 0.07 * fiber;
+
+                vec3 velvetBase = vec3(0.12, 0.08, 0.18) * (0.4 + 0.6 * wrapDiffuse) * fiberDetail;
                 vec3 velvetRimColor = vec3(0.6, 0.3, 0.8) * velvetRim;
-                // Subtle subsurface backlight
-                float backLight = max(dot(-lightDir, normal) * 0.3 + 0.3, 0.0);
-                vec3 subsurface = vec3(0.4, 0.1, 0.3) * backLight * 0.3;
+
+                float backLight = max(dot(-breathLight, normal) * 0.3 + 0.3, 0.0);
+                vec3 subsurface = vec3(0.4, 0.1, 0.3) * backLight * 0.35;
+
                 vec3 velvetColor = velvetBase + velvetRimColor + subsurface;
 
-                // --- Hybrid (phase 0.5): split sphere ---
-                // Use world normal x to determine left/right hemisphere
-                float splitPos = smoothstep(-0.05, 0.05, vWorldNormal.x);
+                // --- Transitions with sweep wave ---
+                // Use object-space Y as sweep axis (bottom to top)
+                float sweepPos = objN.y * 0.5 + 0.5; // 0 at bottom, 1 at top
 
-                // Phase mapping:
-                // 0.0-0.33: fully pixelated
-                // 0.33-0.66: hybrid (left pixel, right velvet)
-                // 0.66-1.0: fully velvet
+                // Transition 1: pixel → hybrid (sweep wave at progress 0.28-0.40)
+                float trans1 = smoothstep(0.28, 0.40, uProgress);
+                float wave1 = sweepPos + sin(objN.x * 6.0 + objN.z * 4.0) * 0.08;
+                float sweep1 = smoothstep(trans1 - 0.15, trans1 + 0.15, wave1);
+                // sweep1: 1 = still pixel, 0 = has transitioned to hybrid split
+
+                float splitPos = smoothstep(-0.05, 0.05, vWorldNormal.x);
+                vec3 hybridColor = mix(pixelColor, velvetColor, splitPos);
+
+                vec3 phase12 = mix(hybridColor, pixelColor, sweep1);
+
+                // Transition 2: hybrid → full velvet (sweep wave at progress 0.60-0.80)
+                float trans2 = smoothstep(0.60, 0.80, uProgress);
+                float wave2 = sweepPos + sin(objN.x * 5.0 - objN.z * 7.0) * 0.1;
+                float sweep2 = smoothstep(trans2 - 0.15, trans2 + 0.15, wave2);
+                // sweep2: 1 = still hybrid, 0 = fully velvet
 
                 vec3 finalColor;
 
-                if (uProgress < 0.33) {
-                    // Phase 1: AI Generated - all pixelated
+                if (uProgress < 0.28) {
                     finalColor = pixelColor;
-                } else if (uProgress < 0.66) {
-                    // Phase 2: Hybrid - split
-                    float hybridBlend = smoothstep(0.33, 0.4, uProgress);
-                    vec3 hybridColor = mix(pixelColor, velvetColor, splitPos);
-                    finalColor = mix(pixelColor, hybridColor, hybridBlend);
+                } else if (uProgress < 0.60) {
+                    finalColor = phase12;
                 } else {
-                    // Phase 3: Full CGI - all velvet
-                    float t = smoothstep(0.66, 0.8, uProgress);
-                    vec3 hybridColor = mix(pixelColor, velvetColor, splitPos);
-                    finalColor = mix(hybridColor, velvetColor, t);
+                    finalColor = mix(velvetColor, phase12, sweep2);
                 }
 
                 // Ambient
                 finalColor += vec3(0.02, 0.01, 0.03);
+
+                // Subtle glow pulse at transition boundaries
+                float transGlow = 0.0;
+                if (uProgress > 0.25 && uProgress < 0.45) {
+                    float edge1 = 1.0 - abs(sweep1 - 0.5) * 2.0;
+                    transGlow = edge1 * smoothstep(0.25, 0.30, uProgress) * smoothstep(0.45, 0.40, uProgress);
+                }
+                if (uProgress > 0.55 && uProgress < 0.85) {
+                    float edge2 = 1.0 - abs(sweep2 - 0.5) * 2.0;
+                    transGlow += edge2 * smoothstep(0.55, 0.60, uProgress) * smoothstep(0.85, 0.80, uProgress);
+                }
+                finalColor += vec3(0.3, 0.15, 0.5) * transGlow * 0.25;
 
                 gl_FragColor = vec4(finalColor, 1.0);
             }
@@ -1454,6 +1498,7 @@
             uniforms: {
                 uProgress: { value: 0.0 },
                 uPixelSize: { value: 0.15 },
+                uTime: { value: 0.0 },
                 uLightDir: { value: new THREE.Vector3(1, 1, 1).normalize() }
             }
         });
@@ -1491,10 +1536,10 @@
         ];
 
         function updateLabels(p) {
-            // Phase boundaries (match shader: 0-0.33 pixel, 0.33-0.66 hybrid, 0.66-1 velvet)
-            const isAI = p < 0.30;
-            const isHybrid = p >= 0.30 && p < 0.63;
-            const isCGI = p >= 0.63;
+            // Phase boundaries (match shader sweep: 0-0.28 pixel, 0.28-0.60 hybrid, 0.60-1 velvet)
+            const isAI = p < 0.28;
+            const isHybrid = p >= 0.28 && p < 0.60;
+            const isCGI = p >= 0.60;
 
             labelAI.classList.toggle('active', isAI);
             labelHybrid.classList.toggle('active', isHybrid);
@@ -1523,8 +1568,11 @@
         });
 
         // --- Render loop ---
+        const clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame(animate);
+
+            material.uniforms.uTime.value = clock.getElapsedTime();
 
             // Smooth rotation
             sphere.rotation.y += (targetRotationY - sphere.rotation.y) * 0.1;
