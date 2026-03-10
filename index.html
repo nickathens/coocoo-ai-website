@@ -121,81 +121,14 @@
             100% { left: 150%; }
         }
 
-        /* --- CooCoo Bounce + Pixel Texture --- */
+        /* --- CooCoo Bounce --- */
         @keyframes bounce-wave {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
         }
-        @keyframes pixel-scan {
-            0% { background-position: 0 0, 0 0; }
-            100% { background-position: 0 0, 0 -200px; }
-        }
-        @keyframes pixel-glitch {
-            0%, 92%, 100% { clip-path: inset(0 0 0 0); opacity: 1; }
-            93% { clip-path: inset(20% 0 40% 0); opacity: 0.8; }
-            94% { clip-path: inset(60% 0 10% 0); opacity: 0.9; }
-            95% { clip-path: inset(0 0 0 0); opacity: 1; }
-            96% { clip-path: inset(40% 0 20% 0); opacity: 0.85; }
-            97% { clip-path: inset(0 0 0 0); opacity: 1; }
-        }
         .letter-bounce {
             display: inline-block;
             animation: bounce-wave 3s ease-in-out infinite;
-        }
-        .letter-pixel {
-            color: white;
-            -webkit-text-fill-color: white;
-            position: relative;
-        }
-        .letter-pixel::before {
-            content: attr(data-letter);
-            position: absolute;
-            left: 0;
-            top: 0;
-            background:
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 3px,
-                    rgba(168, 85, 247, 0.25) 3px,
-                    rgba(168, 85, 247, 0.25) 4px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    transparent,
-                    transparent 5px,
-                    rgba(168, 85, 247, 0.18) 5px,
-                    rgba(168, 85, 247, 0.18) 6px
-                );
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            z-index: 1;
-        }
-        .letter-pixel::after {
-            content: attr(data-letter);
-            position: absolute;
-            left: 0;
-            top: 0;
-            background:
-                linear-gradient(
-                    180deg,
-                    transparent 0%,
-                    rgba(168, 85, 247, 0.4) 2%,
-                    transparent 4%
-                );
-            background-size: 100% 200px;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            animation: pixel-scan 4s linear infinite;
-            z-index: 2;
-        }
-        .coocoo-word {
-            animation: pixel-glitch 8s step-end infinite;
-            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 40px rgba(168, 85, 247, 0.1));
         }
         .d-0 { animation-delay: 0.0s; }
         .d-1 { animation-delay: 0.1s; }
@@ -439,14 +372,13 @@
         <div class="text-center max-w-5xl z-30 mr-auto ml-auto pr-4 pl-4 relative w-full">
             <h1 class="md:text-9xl leading-[0.9] text-6xl font-medium text-white tracking-tighter mb-32 md:mb-52 relative z-10">
                 <span class="text-mask"><span class="text-mask-content" style="animation-delay: 0.1s;">We are</span></span><br> 
-                <span class="inline-flex font-normal relative mt-2 coocoo-word">
-                    <span class="letter-bounce letter-pixel d-0 drop-shadow-2xl" data-letter="C">C</span>
-                    <span class="letter-bounce letter-pixel d-1 drop-shadow-2xl" data-letter="o">o</span>
-                    <span class="letter-bounce letter-pixel d-2 drop-shadow-2xl" data-letter="o">o</span>
-                    <span class="letter-bounce letter-pixel d-3 drop-shadow-2xl" data-letter="C">C</span>
-                    <span class="letter-bounce letter-pixel d-4 drop-shadow-2xl" data-letter="o">o</span>
-                    <span class="letter-bounce letter-pixel d-5 drop-shadow-2xl" data-letter="o">o</span>
-                    <span class="absolute -bottom-2 md:-bottom-4 left-0 w-full h-1 md:h-2 bg-purple-500/50 blur-lg opacity-50"></span>
+                <span class="inline-flex font-normal relative mt-2">
+                    <span class="letter-bounce d-0 drop-shadow-2xl">C</span>
+                    <span class="letter-bounce d-1 drop-shadow-2xl">o</span>
+                    <span class="letter-bounce d-2 drop-shadow-2xl">o</span>
+                    <span class="letter-bounce d-3 drop-shadow-2xl">C</span>
+                    <span class="letter-bounce d-4 drop-shadow-2xl">o</span>
+                    <span class="letter-bounce d-5 drop-shadow-2xl">o</span>
                 </span>
             </h1>
             
