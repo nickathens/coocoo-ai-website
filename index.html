@@ -675,6 +675,36 @@
         </div>
     </section>
 
+    <!-- Sphere Scroll Section -->
+    <section class="sphere-section border-t border-white/5 bg-[#050505] relative z-20" id="sphere-scroll">
+        <div class="sphere-pin-container" id="sphere-pin">
+            <canvas id="sphere-canvas"></canvas>
+
+            <!-- Labels -->
+            <div class="sphere-label sphere-label-left" id="label-ai">
+                <h3>AI Generated</h3>
+                <p>Concept to final render using only prompt engineering and seed variations.</p>
+            </div>
+            <div class="sphere-label sphere-label-right" id="label-hybrid">
+                <h3>Hybrid</h3>
+                <p>Enhancing traditional footage with style transfers and generative in-painting.</p>
+            </div>
+            <div class="sphere-label sphere-label-left" id="label-cgi">
+                <h3>Full CGI</h3>
+                <p>Traditional 3D pipeline expertise including Cinema 4D, Blender, and Unreal Engine.</p>
+            </div>
+
+            <!-- Progress dots -->
+            <div class="sphere-progress-bar">
+                <div class="sphere-progress-dot active" id="dot-0"></div>
+                <div class="sphere-progress-line"></div>
+                <div class="sphere-progress-dot" id="dot-1"></div>
+                <div class="sphere-progress-line"></div>
+                <div class="sphere-progress-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </section>
+
     <!-- How We Work Section -->
     <section id="process" class="py-24 md:py-32 relative border-t border-white/5 bg-[#050505] z-20">
         <div class="max-w-7xl mx-auto px-6">
@@ -862,39 +892,7 @@
                     <p class="text-2xl md:text-4xl leading-tight font-normal text-zinc-400 mb-12 reveal-element">
                         The camera of the future has no lens. It has <span class="text-white">imagination</span>. At CooCoo, we specialize in the weird, the wonderful, and the warped. From music videos to feature film backdrops, we generate worlds that defy physics.
                     </p>
-                    
-                    <!-- Service cards replaced by scroll-driven sphere below -->
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sphere Scroll Section -->
-    <section class="sphere-section border-t border-white/5 bg-[#050505] relative z-20" id="sphere-scroll">
-        <div class="sphere-pin-container" id="sphere-pin">
-            <canvas id="sphere-canvas"></canvas>
-
-            <!-- Labels -->
-            <div class="sphere-label sphere-label-left" id="label-ai">
-                <h3>AI Generated</h3>
-                <p>Concept to final render using only prompt engineering and seed variations.</p>
-            </div>
-            <div class="sphere-label sphere-label-right" id="label-hybrid">
-                <h3>Hybrid</h3>
-                <p>Enhancing traditional footage with style transfers and generative in-painting.</p>
-            </div>
-            <div class="sphere-label sphere-label-left" id="label-cgi">
-                <h3>Full CGI</h3>
-                <p>Traditional 3D pipeline expertise including Cinema 4D, Blender, and Unreal Engine.</p>
-            </div>
-
-            <!-- Progress dots -->
-            <div class="sphere-progress-bar">
-                <div class="sphere-progress-dot active" id="dot-0"></div>
-                <div class="sphere-progress-line"></div>
-                <div class="sphere-progress-dot" id="dot-1"></div>
-                <div class="sphere-progress-line"></div>
-                <div class="sphere-progress-dot" id="dot-2"></div>
             </div>
         </div>
     </section>
