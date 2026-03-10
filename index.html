@@ -4,6 +4,16 @@
     <title>CooCoo Ai - Cinematic AI Production</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/"
+        }
+    }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
     <style>
         body {
@@ -206,69 +216,116 @@
             transform: scale(1.1);
         }
 
-        /* --- Service Card Animations --- */
-        /* Card 1: AI Generated - icon glitches/morphs */
-        @keyframes glitch-shift {
-            0%, 100% { transform: translate(0, 0); opacity: 1; }
-            10% { transform: translate(-2px, 1px); opacity: 0.8; }
-            20% { transform: translate(2px, -1px); opacity: 1; }
-            30% { transform: translate(0, 0); }
-            70% { transform: translate(0, 0); }
-            75% { transform: translate(1px, -2px) skewX(2deg); opacity: 0.7; }
-            80% { transform: translate(-1px, 1px) skewX(-1deg); opacity: 1; }
-            85% { transform: translate(0, 0) skewX(0); }
+        /* --- Sphere Scroll Section --- */
+        .sphere-section {
+            position: relative;
+            height: 300vh;
         }
-        .service-icon-ai {
-            animation: glitch-shift 4s ease-in-out infinite;
+        .sphere-pin-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
         }
-        .service-card-ai:hover .service-icon-ai {
-            animation-duration: 1.5s;
-        }
-
-        /* Card 2: VFX / Hybrid - wand sparkle */
-        @keyframes sparkle-pulse {
-            0%, 100% { filter: drop-shadow(0 0 0px transparent); transform: rotate(0deg); }
-            25% { filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.4)); }
-            50% { filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)); transform: rotate(-3deg); }
-            75% { filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.3)); transform: rotate(2deg); }
-        }
-        .service-icon-vfx {
-            animation: sparkle-pulse 3s ease-in-out infinite;
-        }
-        .service-card-vfx:hover .service-icon-vfx {
-            animation-duration: 1s;
-            filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.8));
-        }
-
-        /* Card 3: 3D-CGI - slow 3D rotation */
-        @keyframes rotate-3d {
-            0% { transform: perspective(200px) rotateY(0deg); }
-            100% { transform: perspective(200px) rotateY(360deg); }
-        }
-        .service-icon-3d {
-            animation: rotate-3d 8s linear infinite;
-        }
-        .service-card-3d:hover .service-icon-3d {
-            animation-duration: 3s;
-        }
-
-        /* Icon glow on hover */
-        .service-glow {
+        #sphere-canvas {
             position: absolute;
-            top: 1.5rem;
-            left: 1.5rem;
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.3), transparent 70%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
-        .service-card-ai:hover .service-glow,
-        .service-card-vfx:hover .service-glow,
-        .service-card-3d:hover .service-glow {
+        .sphere-label {
+            position: absolute;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .sphere-label.active {
             opacity: 1;
+        }
+        .sphere-label h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: white;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+        .sphere-label p {
+            font-size: 0.875rem;
+            color: #71717a;
+            max-width: 280px;
+            line-height: 1.6;
+        }
+        @media (min-width: 768px) {
+            .sphere-label h3 {
+                font-size: 2rem;
+            }
+            .sphere-label p {
+                max-width: 320px;
+            }
+        }
+        .sphere-label-left {
+            left: 5%;
+            bottom: 8%;
+            text-align: center;
+        }
+        .sphere-label-right {
+            right: 5%;
+            bottom: 8%;
+            text-align: center;
+        }
+        .sphere-label-right p {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (min-width: 768px) {
+            .sphere-label-left {
+                left: 8%;
+                bottom: auto;
+                top: 50%;
+                transform: translateY(-50%);
+                text-align: left;
+            }
+            .sphere-label-right {
+                right: 8%;
+                bottom: auto;
+                top: 50%;
+                transform: translateY(-50%);
+                text-align: right;
+            }
+            .sphere-label-right p {
+                margin-left: auto;
+                margin-right: 0;
+            }
+        }
+        .sphere-progress-bar {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .sphere-progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        .sphere-progress-dot.active {
+            background: rgba(168, 85, 247, 0.8);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+            transform: scale(1.3);
+        }
+        .sphere-progress-line {
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
         }
     </style>
 </head>
@@ -806,33 +863,38 @@
                         The camera of the future has no lens. It has <span class="text-white">imagination</span>. At CooCoo, we specialize in the weird, the wonderful, and the warped. From music videos to feature film backdrops, we generate worlds that defy physics.
                     </p>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="service-card-ai relative h-64 bg-zinc-900 rounded-xl p-8 flex flex-col justify-between border border-white/5 hover:border-purple-500/30 transition-all group hover:-translate-y-2 duration-500 reveal-element delay-100">
-                            <div class="service-glow"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="film" class="service-icon-ai lucide lucide-film w-8 h-8 text-zinc-600 group-hover:text-purple-400 transition-colors"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M7 3v18"></path><path d="M3 7.5h4"></path><path d="M3 12h18"></path><path d="M3 16.5h4"></path><path d="M17 3v18"></path><path d="M17 7.5h4"></path><path d="M17 16.5h4"></path></svg>
-                            <div class="">
-                                <h3 class="text-lg font-medium text-white mb-2">Fully AI Generated</h3>
-                                <p class="text-sm text-zinc-500">Concept to final render using only prompt engineering and seed variations.</p>
-                            </div>
-                        </div>
-                        <div class="service-card-vfx relative h-64 bg-zinc-900 rounded-xl p-8 flex flex-col justify-between border border-white/5 hover:border-purple-500/30 transition-all group hover:-translate-y-2 duration-500 reveal-element delay-200">
-                            <div class="service-glow"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="wand-2" class="service-icon-vfx lucide lucide-wand-2 w-8 h-8 text-zinc-600 group-hover:text-purple-400 transition-colors"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"></path><path d="m14 7 3 3"></path><path d="M5 6v4"></path><path d="M19 14v4"></path><path d="M10 2v2"></path><path d="M7 8H3"></path><path d="M21 16h-4"></path><path d="M11 3H9"></path></svg>
-                            <div class="">
-                                <h3 class="text-lg font-medium text-white mb-2">AI VFX / Hybrid</h3>
-                                <p class="text-sm text-zinc-500">Enhancing traditional footage with style transfers and generative in-painting.</p>
-                            </div>
-                        </div>
-                        <div class="service-card-3d relative h-64 bg-zinc-900 rounded-xl p-8 flex flex-col justify-between border border-white/5 hover:border-purple-500/30 transition-all group hover:-translate-y-2 duration-500 reveal-element delay-300">
-                            <div class="service-glow"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="box" class="service-icon-3d lucide lucide-box w-8 h-8 text-zinc-600 group-hover:text-purple-400 transition-colors"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
-                            <div class="">
-                                <h3 class="text-lg font-medium text-white mb-2">Fully 3D-CGI</h3>
-                                <p class="text-sm text-zinc-500">Traditional 3D pipeline expertise including Cinema 4D, Blender, and Unreal Engine.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Service cards replaced by scroll-driven sphere below -->
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sphere Scroll Section -->
+    <section class="sphere-section border-t border-white/5 bg-[#050505] relative z-20" id="sphere-scroll">
+        <div class="sphere-pin-container" id="sphere-pin">
+            <canvas id="sphere-canvas"></canvas>
+
+            <!-- Labels -->
+            <div class="sphere-label sphere-label-left" id="label-ai">
+                <h3>AI Generated</h3>
+                <p>Concept to final render using only prompt engineering and seed variations.</p>
+            </div>
+            <div class="sphere-label sphere-label-right" id="label-hybrid">
+                <h3>Hybrid</h3>
+                <p>Enhancing traditional footage with style transfers and generative in-painting.</p>
+            </div>
+            <div class="sphere-label sphere-label-left" id="label-cgi">
+                <h3>Full CGI</h3>
+                <p>Traditional 3D pipeline expertise including Cinema 4D, Blender, and Unreal Engine.</p>
+            </div>
+
+            <!-- Progress dots -->
+            <div class="sphere-progress-bar">
+                <div class="sphere-progress-dot active" id="dot-0"></div>
+                <div class="sphere-progress-line"></div>
+                <div class="sphere-progress-dot" id="dot-1"></div>
+                <div class="sphere-progress-line"></div>
+                <div class="sphere-progress-dot" id="dot-2"></div>
             </div>
         </div>
     </section>
@@ -1250,6 +1312,232 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Send Message <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>';
         });
+    </script>
+
+    <!-- Sphere Animation -->
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- Shader code ---
+        const vertexShader = `
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            varying vec3 vWorldNormal;
+            uniform float uProgress; // 0 = pixelated, 0.5 = hybrid, 1 = velvet
+            uniform float uPixelSize;
+
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
+
+                vec3 pos = position;
+
+                // Pixelation: snap vertices to grid
+                float pixelFactor = 1.0 - smoothstep(0.0, 0.6, uProgress);
+                float gridSize = uPixelSize * pixelFactor;
+
+                if (gridSize > 0.001) {
+                    pos = floor(pos / gridSize + 0.5) * gridSize;
+                    // Re-project onto sphere surface (keep radius)
+                    float originalRadius = length(position);
+                    pos = normalize(pos) * originalRadius;
+                }
+
+                vPosition = (modelViewMatrix * vec4(pos, 1.0)).xyz;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            varying vec3 vWorldNormal;
+            uniform float uProgress;
+            uniform vec3 uLightDir;
+
+            void main() {
+                vec3 normal = normalize(vNormal);
+                vec3 viewDir = normalize(-vPosition);
+                vec3 lightDir = normalize(uLightDir);
+
+                // --- Pixelated look (phase 0) ---
+                // Quantized normals give faceted appearance
+                float pixelFactor = 1.0 - smoothstep(0.0, 0.6, uProgress);
+                vec3 quantNormal = normal;
+                if (pixelFactor > 0.01) {
+                    float q = mix(1.0, 6.0, pixelFactor);
+                    quantNormal = floor(normal * q + 0.5) / q;
+                    quantNormal = normalize(quantNormal);
+                }
+                float pixelDiffuse = max(dot(quantNormal, lightDir), 0.0);
+                // Step-quantize the lighting for pixel look
+                pixelDiffuse = floor(pixelDiffuse * 4.0) / 4.0;
+
+                // Pixel color: digital purple-ish blue
+                vec3 pixelColor = vec3(0.35, 0.15, 0.65) * (0.3 + 0.7 * pixelDiffuse);
+                // Add scan lines
+                float scanline = step(0.5, fract(gl_FragCoord.y / 3.0));
+                pixelColor *= 0.85 + 0.15 * scanline;
+
+                // --- Velvet look (phase 1) ---
+
+                // Velvet rim lighting - stronger at grazing angles
+                float rim = 1.0 - max(dot(viewDir, normal), 0.0);
+                float velvetRim = pow(rim, 2.5) * 1.2;
+
+                // Soft diffuse with wrap lighting
+                float wrapDiffuse = max(dot(normal, lightDir) * 0.5 + 0.5, 0.0);
+                wrapDiffuse = pow(wrapDiffuse, 1.5);
+
+                // Velvet color: deep warm with purple rim glow
+                vec3 velvetBase = vec3(0.12, 0.08, 0.18) * (0.4 + 0.6 * wrapDiffuse);
+                vec3 velvetRimColor = vec3(0.6, 0.3, 0.8) * velvetRim;
+                // Subtle subsurface backlight
+                float backLight = max(dot(-lightDir, normal) * 0.3 + 0.3, 0.0);
+                vec3 subsurface = vec3(0.4, 0.1, 0.3) * backLight * 0.3;
+                vec3 velvetColor = velvetBase + velvetRimColor + subsurface;
+
+                // --- Hybrid (phase 0.5): split sphere ---
+                // Use world normal x to determine left/right hemisphere
+                float splitPos = smoothstep(-0.05, 0.05, vWorldNormal.x);
+
+                // Phase mapping:
+                // 0.0-0.33: fully pixelated
+                // 0.33-0.66: hybrid (left pixel, right velvet)
+                // 0.66-1.0: fully velvet
+
+                vec3 finalColor;
+
+                if (uProgress < 0.33) {
+                    // Phase 1: AI Generated - all pixelated
+                    finalColor = pixelColor;
+                } else if (uProgress < 0.66) {
+                    // Phase 2: Hybrid - split
+                    float hybridBlend = smoothstep(0.33, 0.4, uProgress);
+                    vec3 hybridColor = mix(pixelColor, velvetColor, splitPos);
+                    finalColor = mix(pixelColor, hybridColor, hybridBlend);
+                } else {
+                    // Phase 3: Full CGI - all velvet
+                    float t = smoothstep(0.66, 0.8, uProgress);
+                    vec3 hybridColor = mix(pixelColor, velvetColor, splitPos);
+                    finalColor = mix(hybridColor, velvetColor, t);
+                }
+
+                // Ambient
+                finalColor += vec3(0.02, 0.01, 0.03);
+
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
+
+        // --- Setup ---
+        const canvas = document.getElementById('sphere-canvas');
+        const renderer = new THREE.WebGLRenderer({
+            canvas,
+            antialias: true,
+            alpha: true
+        });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x050505, 1);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        camera.position.z = 4;
+
+        // Sphere — lower resolution on mobile for performance
+        const isMobile = window.innerWidth < 768;
+        const segments = isMobile ? 64 : 96;
+        const geometry = new THREE.SphereGeometry(1.2, segments, segments);
+        const material = new THREE.ShaderMaterial({
+            vertexShader,
+            fragmentShader,
+            uniforms: {
+                uProgress: { value: 0.0 },
+                uPixelSize: { value: 0.15 },
+                uLightDir: { value: new THREE.Vector3(1, 1, 1).normalize() }
+            }
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        // WebGL context loss recovery
+        canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); });
+        canvas.addEventListener('webglcontextrestored', () => { onResize(); });
+
+        // State
+        let targetRotationY = 0;
+
+        // --- Resize ---
+        function onResize() {
+            const container = document.getElementById('sphere-pin');
+            if (!container) return;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        }
+        window.addEventListener('resize', onResize);
+        onResize();
+
+        // --- Labels & dots ---
+        const labelAI = document.getElementById('label-ai');
+        const labelHybrid = document.getElementById('label-hybrid');
+        const labelCGI = document.getElementById('label-cgi');
+        const dots = [
+            document.getElementById('dot-0'),
+            document.getElementById('dot-1'),
+            document.getElementById('dot-2')
+        ];
+
+        function updateLabels(p) {
+            // Phase boundaries (match shader: 0-0.33 pixel, 0.33-0.66 hybrid, 0.66-1 velvet)
+            const isAI = p < 0.30;
+            const isHybrid = p >= 0.30 && p < 0.63;
+            const isCGI = p >= 0.63;
+
+            labelAI.classList.toggle('active', isAI);
+            labelHybrid.classList.toggle('active', isHybrid);
+            labelCGI.classList.toggle('active', isCGI);
+
+            dots[0].classList.toggle('active', isAI);
+            dots[1].classList.toggle('active', isHybrid);
+            dots[2].classList.toggle('active', isCGI);
+        }
+
+        // --- GSAP ScrollTrigger ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        ScrollTrigger.create({
+            trigger: '#sphere-scroll',
+            start: 'top top',
+            end: 'bottom bottom',
+            pin: '#sphere-pin',
+            scrub: 0.5,
+            onUpdate: (self) => {
+                const p = self.progress;
+                targetRotationY = p * Math.PI * 2;
+                material.uniforms.uProgress.value = p;
+                updateLabels(p);
+            }
+        });
+
+        // --- Render loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth rotation
+            sphere.rotation.y += (targetRotationY - sphere.rotation.y) * 0.1;
+
+            // Subtle idle float
+            sphere.rotation.x = Math.sin(Date.now() * 0.0003) * 0.05;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Initial label state
+        updateLabels(0);
     </script>
 
 </body></html>
