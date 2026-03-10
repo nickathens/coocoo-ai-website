@@ -129,6 +129,11 @@
         .letter-bounce {
             display: inline-block;
             animation: bounce-wave 3s ease-in-out infinite;
+            transition: opacity 0.3s ease-out;
+        }
+        .letter-bounce.letter-hidden {
+            opacity: 0 !important;
+            transition: opacity 0.15s ease-in;
         }
         .d-0 { animation-delay: 0.0s; }
         .d-1 { animation-delay: 0.1s; }
@@ -1381,6 +1386,34 @@
     })();
     </script>
 
+    <!-- CooCoo Letter Disappear/Reappear -->
+    <script>
+    (function() {
+        const wrap = document.querySelector('.coocoo-tv-wrap');
+        if (!wrap) return;
+        const letters = Array.from(wrap.querySelectorAll('.letter-bounce'));
+        if (!letters.length) return;
+
+        // Each letter independently disappears and reappears at random intervals
+        letters.forEach(function(letter) {
+            function scheduleFlicker() {
+                // Visible for 2-6 seconds, then disappear for 0.3-0.8 seconds
+                var visibleTime = 2000 + Math.random() * 4000;
+                setTimeout(function() {
+                    letter.classList.add('letter-hidden');
+                    var hiddenTime = 300 + Math.random() * 500;
+                    setTimeout(function() {
+                        letter.classList.remove('letter-hidden');
+                        scheduleFlicker();
+                    }, hiddenTime);
+                }, visibleTime);
+            }
+            // Stagger initial start so they don't all begin at once
+            setTimeout(scheduleFlicker, Math.random() * 3000);
+        });
+    })();
+    </script>
+
     <!-- Sphere Animation -->
     <script type="module">
         import * as THREE from 'three';
@@ -1437,6 +1470,7 @@
             uniform float uTime;
             uniform vec3 uLightDir;
             uniform sampler2D uNoiseTex;
+            uniform sampler2D uBlinkTex;
 
             void main() {
                 vec3 normal = normalize(vNormal);
@@ -1463,8 +1497,12 @@
                 vec2 staticUV = floor(vec2(u, v) * cellCount) / cellCount;
                 vec3 noiseVal = texture2D(uNoiseTex, staticUV).rgb;
 
-                // Modulate purple noise by lighting
-                vec3 pixelColor = noiseVal * (0.4 + 0.6 * pixelDiffuse);
+                // Blink mask — some cells randomly disappear and reappear
+                float blinkVal = texture2D(uBlinkTex, staticUV).r;
+                float blinkMask = smoothstep(0.0, 0.15, blinkVal); // cells with value near 0 go dark
+
+                // Modulate purple noise by lighting and blink
+                vec3 pixelColor = noiseVal * (0.4 + 0.6 * pixelDiffuse) * mix(1.0, blinkMask, pixelFactor);
                 float scanline = step(0.5, fract(gl_FragCoord.y / 3.0));
                 pixelColor *= 0.85 + 0.15 * scanline;
 
@@ -1565,6 +1603,31 @@
             noiseData[i * 4 + 3] = 255;
         }
 
+        // --- Blink texture for disappearing pixel cells ---
+        const blinkSize = 40; // matches cellCount in shader
+        const blinkCanvas = document.createElement('canvas');
+        blinkCanvas.width = blinkSize;
+        blinkCanvas.height = blinkSize;
+        const blinkCtx = blinkCanvas.getContext('2d');
+        const blinkImageData = blinkCtx.createImageData(blinkSize, blinkSize);
+        const blinkData = blinkImageData.data;
+        const blinkTotalPixels = blinkSize * blinkSize;
+        // Per-cell state: each cell has its own timer for disappear/reappear
+        const blinkStates = new Float32Array(blinkTotalPixels);
+        const blinkTimers = new Float32Array(blinkTotalPixels);
+        // 0 = visible (counting down to disappear), 1 = hidden (counting down to reappear)
+        const blinkPhase = new Uint8Array(blinkTotalPixels);
+        for (let i = 0; i < blinkTotalPixels; i++) {
+            blinkStates[i] = 1.0; // start visible
+            blinkTimers[i] = 2.0 + Math.random() * 5.0; // 2-7s before first disappear
+            blinkPhase[i] = 0;
+            const idx = i * 4;
+            blinkData[idx] = 255;
+            blinkData[idx + 1] = 255;
+            blinkData[idx + 2] = 255;
+            blinkData[idx + 3] = 255;
+        }
+
         // --- Setup ---
         const canvas = document.getElementById('sphere-canvas');
         const renderer = new THREE.WebGLRenderer({
@@ -1586,6 +1649,13 @@
         noiseTex.wrapS = THREE.RepeatWrapping;
         noiseTex.wrapT = THREE.RepeatWrapping;
 
+        // Blink texture
+        const blinkTex = new THREE.CanvasTexture(blinkCanvas);
+        blinkTex.minFilter = THREE.NearestFilter;
+        blinkTex.magFilter = THREE.NearestFilter;
+        blinkTex.wrapS = THREE.RepeatWrapping;
+        blinkTex.wrapT = THREE.RepeatWrapping;
+
         // Sphere — lower resolution on mobile for performance
         const isMobile = window.innerWidth < 768;
         const segments = isMobile ? 64 : 96;
@@ -1598,7 +1668,8 @@
                 uPixelSize: { value: 0.06 },
                 uTime: { value: 0.0 },
                 uLightDir: { value: new THREE.Vector3(1, 1, 1).normalize() },
-                uNoiseTex: { value: noiseTex }
+                uNoiseTex: { value: noiseTex },
+                uBlinkTex: { value: blinkTex }
             }
         });
         const sphere = new THREE.Mesh(geometry, material);
@@ -1669,10 +1740,39 @@
         // --- Render loop ---
         const clock = new THREE.Clock();
         let noiseFrame = 0;
+        let lastBlinkTime = 0;
         function animate() {
             requestAnimationFrame(animate);
 
-            material.uniforms.uTime.value = clock.getElapsedTime();
+            const elapsed = clock.getElapsedTime();
+            const dt = elapsed - lastBlinkTime;
+            lastBlinkTime = elapsed;
+            material.uniforms.uTime.value = elapsed;
+
+            // Update blink states — each cell has independent timers
+            for (let i = 0; i < blinkTotalPixels; i++) {
+                blinkTimers[i] -= dt;
+                if (blinkTimers[i] <= 0) {
+                    if (blinkPhase[i] === 0) {
+                        // Was visible, now disappear
+                        blinkPhase[i] = 1;
+                        blinkStates[i] = 0.0;
+                        blinkTimers[i] = 0.3 + Math.random() * 0.6; // hidden for 0.3-0.9s
+                    } else {
+                        // Was hidden, now reappear
+                        blinkPhase[i] = 0;
+                        blinkStates[i] = 1.0;
+                        blinkTimers[i] = 2.0 + Math.random() * 5.0; // visible for 2-7s
+                    }
+                }
+                const idx = i * 4;
+                const v = (blinkStates[i] * 255) | 0;
+                blinkData[idx] = v;
+                blinkData[idx + 1] = v;
+                blinkData[idx + 2] = v;
+            }
+            blinkCtx.putImageData(blinkImageData, 0, 0);
+            blinkTex.needsUpdate = true;
 
             // Update noise texture ~10fps (every 6th frame at 60fps)
             noiseFrame++;
