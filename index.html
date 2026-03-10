@@ -1469,8 +1469,6 @@
             uniform float uProgress;
             uniform float uTime;
             uniform vec3 uLightDir;
-            uniform sampler2D uNoiseTex;
-            uniform sampler2D uBlinkTex;
 
             void main() {
                 vec3 normal = normalize(vNormal);
@@ -1478,7 +1476,7 @@
                 vec3 lightDir = normalize(uLightDir);
                 vec3 objN = normalize(vObjectPos);
 
-                // --- Pixelated look with TV static ---
+                // --- Pixelated look ---
                 float pixelFactor = 1.0 - smoothstep(0.0, 0.6, uProgress);
                 vec3 quantNormal = normal;
                 if (pixelFactor > 0.01) {
@@ -1488,21 +1486,7 @@
                 }
                 float pixelDiffuse = max(dot(quantNormal, lightDir), 0.0);
                 pixelDiffuse = floor(pixelDiffuse * 4.0) / 4.0;
-
-                // Sample TV static noise using spherical UV mapping
-                float u = atan(objN.z, objN.x) / (2.0 * 3.14159265) + 0.5;
-                float v = objN.y * 0.5 + 0.5;
-                // Quantize UVs to create blocky pixel cells on the sphere
-                float cellCount = 40.0;
-                vec2 staticUV = floor(vec2(u, v) * cellCount) / cellCount;
-                vec3 noiseVal = texture2D(uNoiseTex, staticUV).rgb;
-
-                // Blink mask — some cells randomly disappear and reappear
-                float blinkVal = texture2D(uBlinkTex, staticUV).r;
-                float blinkMask = smoothstep(0.0, 0.15, blinkVal); // cells with value near 0 go dark
-
-                // Modulate purple noise by lighting and blink
-                vec3 pixelColor = noiseVal * (0.4 + 0.6 * pixelDiffuse) * mix(1.0, blinkMask, pixelFactor);
+                vec3 pixelColor = vec3(0.35, 0.15, 0.65) * (0.3 + 0.7 * pixelDiffuse);
                 float scanline = step(0.5, fract(gl_FragCoord.y / 3.0));
                 pixelColor *= 0.85 + 0.15 * scanline;
 
@@ -1590,44 +1574,6 @@
             }
         `;
 
-        // --- Noise texture for TV static on sphere ---
-        const noiseSize = 64;
-        const noiseCanvas = document.createElement('canvas');
-        noiseCanvas.width = noiseSize;
-        noiseCanvas.height = noiseSize;
-        const noiseCtx = noiseCanvas.getContext('2d');
-        const noiseImageData = noiseCtx.createImageData(noiseSize, noiseSize);
-        const noiseData = noiseImageData.data;
-        const noiseTotalPixels = noiseSize * noiseSize;
-        for (let i = 0; i < noiseTotalPixels; i++) {
-            noiseData[i * 4 + 3] = 255;
-        }
-
-        // --- Blink texture for disappearing pixel cells ---
-        const blinkSize = 40; // matches cellCount in shader
-        const blinkCanvas = document.createElement('canvas');
-        blinkCanvas.width = blinkSize;
-        blinkCanvas.height = blinkSize;
-        const blinkCtx = blinkCanvas.getContext('2d');
-        const blinkImageData = blinkCtx.createImageData(blinkSize, blinkSize);
-        const blinkData = blinkImageData.data;
-        const blinkTotalPixels = blinkSize * blinkSize;
-        // Per-cell state: each cell has its own timer for disappear/reappear
-        const blinkStates = new Float32Array(blinkTotalPixels);
-        const blinkTimers = new Float32Array(blinkTotalPixels);
-        // 0 = visible (counting down to disappear), 1 = hidden (counting down to reappear)
-        const blinkPhase = new Uint8Array(blinkTotalPixels);
-        for (let i = 0; i < blinkTotalPixels; i++) {
-            blinkStates[i] = 1.0; // start visible
-            blinkTimers[i] = 2.0 + Math.random() * 5.0; // 2-7s before first disappear
-            blinkPhase[i] = 0;
-            const idx = i * 4;
-            blinkData[idx] = 255;
-            blinkData[idx + 1] = 255;
-            blinkData[idx + 2] = 255;
-            blinkData[idx + 3] = 255;
-        }
-
         // --- Setup ---
         const canvas = document.getElementById('sphere-canvas');
         const renderer = new THREE.WebGLRenderer({
@@ -1642,20 +1588,6 @@
         const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
         camera.position.z = 4;
 
-        // Noise texture (updated per frame)
-        const noiseTex = new THREE.CanvasTexture(noiseCanvas);
-        noiseTex.minFilter = THREE.NearestFilter;
-        noiseTex.magFilter = THREE.NearestFilter;
-        noiseTex.wrapS = THREE.RepeatWrapping;
-        noiseTex.wrapT = THREE.RepeatWrapping;
-
-        // Blink texture
-        const blinkTex = new THREE.CanvasTexture(blinkCanvas);
-        blinkTex.minFilter = THREE.NearestFilter;
-        blinkTex.magFilter = THREE.NearestFilter;
-        blinkTex.wrapS = THREE.RepeatWrapping;
-        blinkTex.wrapT = THREE.RepeatWrapping;
-
         // Sphere — lower resolution on mobile for performance
         const isMobile = window.innerWidth < 768;
         const segments = isMobile ? 64 : 96;
@@ -1667,9 +1599,7 @@
                 uProgress: { value: 0.0 },
                 uPixelSize: { value: 0.06 },
                 uTime: { value: 0.0 },
-                uLightDir: { value: new THREE.Vector3(1, 1, 1).normalize() },
-                uNoiseTex: { value: noiseTex },
-                uBlinkTex: { value: blinkTex }
+                uLightDir: { value: new THREE.Vector3(1, 1, 1).normalize() }
             }
         });
         const sphere = new THREE.Mesh(geometry, material);
@@ -1739,55 +1669,11 @@
 
         // --- Render loop ---
         const clock = new THREE.Clock();
-        let noiseFrame = 0;
-        let lastBlinkTime = 0;
         function animate() {
             requestAnimationFrame(animate);
 
             const elapsed = clock.getElapsedTime();
-            const dt = elapsed - lastBlinkTime;
-            lastBlinkTime = elapsed;
             material.uniforms.uTime.value = elapsed;
-
-            // Update blink states — each cell has independent timers
-            for (let i = 0; i < blinkTotalPixels; i++) {
-                blinkTimers[i] -= dt;
-                if (blinkTimers[i] <= 0) {
-                    if (blinkPhase[i] === 0) {
-                        // Was visible, now disappear
-                        blinkPhase[i] = 1;
-                        blinkStates[i] = 0.0;
-                        blinkTimers[i] = 0.3 + Math.random() * 0.6; // hidden for 0.3-0.9s
-                    } else {
-                        // Was hidden, now reappear
-                        blinkPhase[i] = 0;
-                        blinkStates[i] = 1.0;
-                        blinkTimers[i] = 2.0 + Math.random() * 5.0; // visible for 2-7s
-                    }
-                }
-                const idx = i * 4;
-                const v = (blinkStates[i] * 255) | 0;
-                blinkData[idx] = v;
-                blinkData[idx + 1] = v;
-                blinkData[idx + 2] = v;
-            }
-            blinkCtx.putImageData(blinkImageData, 0, 0);
-            blinkTex.needsUpdate = true;
-
-            // Update noise texture ~10fps (every 6th frame at 60fps)
-            noiseFrame++;
-            if (noiseFrame % 6 === 0) {
-                for (let i = 0; i < noiseTotalPixels; i++) {
-                    const idx = i * 4;
-                    const t = Math.random();
-                    // Purple gradient: dark purple → light lavender
-                    noiseData[idx]     = (40 + t * 180) | 0;   // R: 40-220
-                    noiseData[idx + 1] = (10 + t * 100) | 0;   // G: 10-110
-                    noiseData[idx + 2] = (80 + t * 175) | 0;   // B: 80-255
-                }
-                noiseCtx.putImageData(noiseImageData, 0, 0);
-                noiseTex.needsUpdate = true;
-            }
 
             // Smooth rotation
             sphere.rotation.y += (targetRotationY - sphere.rotation.y) * 0.1;
