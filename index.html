@@ -137,6 +137,21 @@
         .d-4 { animation-delay: 0.4s; }
         .d-5 { animation-delay: 0.5s; }
 
+        /* --- CooCoo TV Static Texture --- */
+        .coocoo-tv-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+        .coocoo-tv-wrap .letter-bounce {
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: cover;
+            background-position: center;
+            image-rendering: pixelated;
+            /* background-image set per-frame by JS */
+        }
+
         /* Hide native video play buttons (iOS) */
         video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-panel,
@@ -372,7 +387,7 @@
         <div class="text-center max-w-5xl z-30 mr-auto ml-auto pr-4 pl-4 relative w-full">
             <h1 class="md:text-9xl leading-[0.9] text-6xl font-medium text-white tracking-tighter mb-32 md:mb-52 relative z-10">
                 <span class="text-mask"><span class="text-mask-content" style="animation-delay: 0.1s;">We are</span></span><br> 
-                <span class="inline-flex font-normal relative mt-2">
+                <span class="coocoo-tv-wrap inline-flex font-normal relative mt-2">
                     <span class="letter-bounce d-0 drop-shadow-2xl">C</span>
                     <span class="letter-bounce d-1 drop-shadow-2xl">o</span>
                     <span class="letter-bounce d-2 drop-shadow-2xl">o</span>
@@ -1309,6 +1324,58 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Send Message <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>';
         });
+    </script>
+
+    <!-- CooCoo TV Static Noise -->
+    <script>
+    (function() {
+        const wrap = document.querySelector('.coocoo-tv-wrap');
+        if (!wrap) return;
+        const letters = wrap.querySelectorAll('.letter-bounce');
+        if (!letters.length) return;
+
+        // Tiny offscreen canvas — 32x32 noise, CSS stretches it for blocky pixel look
+        const noiseW = 32;
+        const noiseH = 32;
+        const offscreen = document.createElement('canvas');
+        offscreen.width = noiseW;
+        offscreen.height = noiseH;
+        const offCtx = offscreen.getContext('2d');
+        const imageData = offCtx.createImageData(noiseW, noiseH);
+        const data = imageData.data;
+        const totalPixels = noiseW * noiseH;
+
+        // Pre-fill alpha channel
+        for (let i = 0; i < totalPixels; i++) {
+            data[i * 4 + 3] = 255;
+        }
+
+        const fps = 20;
+        const interval = 1000 / fps;
+        let lastTime = 0;
+
+        function animate(now) {
+            requestAnimationFrame(animate);
+            if (now - lastTime < interval) return;
+            lastTime = now;
+
+            // Generate random colored noise
+            for (let i = 0; i < totalPixels; i++) {
+                const idx = i * 4;
+                data[idx]     = Math.random() * 255 | 0;
+                data[idx + 1] = Math.random() * 255 | 0;
+                data[idx + 2] = Math.random() * 255 | 0;
+            }
+            offCtx.putImageData(imageData, 0, 0);
+            const url = offscreen.toDataURL();
+            const bg = 'url(' + url + ')';
+            for (let i = 0; i < letters.length; i++) {
+                letters[i].style.backgroundImage = bg;
+            }
+        }
+
+        requestAnimationFrame(animate);
+    })();
     </script>
 
     <!-- Sphere Animation -->
