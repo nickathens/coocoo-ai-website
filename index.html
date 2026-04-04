@@ -64,6 +64,10 @@
         /* Hero portal — two circles in the O's */
         .hero-portal {
             clip-path: url(#oo-clip);
+            opacity: 0;
+        }
+        .hero-portal.portal-ready {
+            opacity: 1;
         }
 
         /* Marquee */
@@ -808,6 +812,8 @@
 
     // Initial position (may use fallback metrics before fonts load)
     updateOOCircles();
+    // Reveal portal once circles are positioned (prevents flash of unclipped video)
+    if (heroPortalEl) heroPortalEl.classList.add('portal-ready');
     // Recalculate once fonts are fully loaded for accurate positions
     document.fonts.ready.then(() => {
         updateOOCircles();
