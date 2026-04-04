@@ -1,119 +1,96 @@
-<html lang="en" class="scroll-smooth"><head>
+<!DOCTYPE html>
+<html lang="en" class="lenis">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CooCoo Ai - Cinematic AI Production</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/"
+    <title>CooCoo AI - Cinematic AI Production</title>
+    <meta name="description" content="CooCoo AI blends classic cinematography with state-of-the-art generative AI to produce shots that didn't exist a second ago.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#C9A84C', dark: '#8B7225', light: '#F5E6B8' }
+                    },
+                    fontFamily: {
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                        body: ['"Outfit"', 'sans-serif'],
+                    }
+                }
+            }
         }
-    }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- GSAP + Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.min.js"></script>
+
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: #050505;
-            cursor: default;
+            background: #050505;
+            color: #a1a1aa;
+            overflow-x: hidden;
         }
-        h1, h2, h3, h4 {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
+        h1, h2, h3, h4, h5 { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Lenis */
+        html.lenis, html.lenis body { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto !important; }
+        .lenis.lenis-stopped { overflow: hidden; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #050505; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-        /* --- Animations --- */
-        @keyframes float {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Content layer */
+        .content-layer {
+            position: relative;
+            z-index: 10;
         }
 
-        .blob { animation: float 12s infinite ease-in-out; }
-
-        /* --- Scroll Reveal System --- */
-        .reveal-element {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: opacity, transform;
-        }
-        
-        .reveal-element.is-visible {
-            opacity: 1;
-            transform: translateY(0);
+        /* Hero portal — two circles in the O's */
+        .hero-portal {
+            clip-path: url(#oo-clip);
         }
 
-        /* Stagger delays */
-        .delay-100 { transition-delay: 0.1s; }
-        .delay-200 { transition-delay: 0.2s; }
-        .delay-300 { transition-delay: 0.3s; }
-        .delay-400 { transition-delay: 0.4s; }
-
-        /* --- Text Mask Reveal (Hero) --- */
-        .text-mask {
-            overflow: hidden;
-            display: inline-block;
-            vertical-align: bottom;
-            line-height: 1.1;
-        }
-        
-        .text-mask-content {
-            display: inline-block;
-            transform: translateY(110%);
-            animation: textReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        
-        @keyframes textReveal {
-            from { transform: translateY(110%); }
-            to { transform: translateY(0); }
-        }
-
-        /* --- Infinite Marquee --- */
+        /* Marquee */
         .marquee-container {
             mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
             -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
         }
-        
-        .marquee-track {
-            display: flex;
-            gap: 4rem;
-            width: max-content;
-            animation: scroll 40s linear infinite;
-        }
-        
-        @keyframes scroll {
+        @keyframes marquee {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
 
-        /* --- Button Shimmer --- */
-        .btn-shimmer {
-            position: relative;
-            overflow: hidden;
+        /* Work card hover */
+        .work-card .card-media {
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .work-card:hover .card-media {
+            transform: scale(1.05);
+        }
+
+        /* Button shimmer */
+        .btn-shimmer { position: relative; overflow: hidden; }
         .btn-shimmer::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: -150%;
-            width: 100%;
-            height: 100%;
+            top: 0; left: -150%;
+            width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
             transform: skewX(-20deg);
             animation: shimmer 4s infinite;
@@ -124,7 +101,7 @@
             100% { left: 150%; }
         }
 
-        /* --- CooCoo Letter Float --- */
+        /* CooCoo pixel letter float */
         @keyframes letter-drift {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-6px) rotate(1.5deg); }
@@ -145,7 +122,7 @@
         .d-4 { animation-delay: 0.4s; }
         .d-5 { animation-delay: 0.5s; }
 
-        /* --- CooCoo TV Static Texture --- */
+        /* CooCoo TV Static Texture */
         .coocoo-tv-wrap {
             position: relative;
             display: inline-flex;
@@ -158,214 +135,123 @@
             background-position: center;
             image-rendering: pixelated;
             opacity: 0.7;
-            /* background-image set per-frame by JS */
         }
 
-        /* Hide native video play buttons (iOS) */
+        /* Nav pixel logo */
+        .nav-logo-wrap .nav-letter {
+            display: inline-block;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: cover;
+            background-position: center;
+            image-rendering: pixelated;
+            opacity: 0.85;
+        }
+
+        /* Focus */
+        *:focus-visible { outline: 2px solid #C9A84C; outline-offset: 2px; }
+        *:focus:not(:focus-visible) { outline: none; }
+
+        /* Hide video controls */
+        video::-webkit-media-controls,
         video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-panel,
-        video::-webkit-media-controls,
-        video::-webkit-media-controls-overlay-play-button {
+        video::-webkit-media-controls-overlay-play-button,
+        video::-webkit-media-controls-enclosure {
             display: none !important;
             -webkit-appearance: none !important;
             opacity: 0 !important;
             pointer-events: none !important;
         }
 
-        /* Hide native controls container completely */
-        video::-webkit-media-controls-enclosure {
-            display: none !important;
-        }
+        /* Horizontal scroll */
+        .hscroll-track { will-change: transform; }
+        .hscroll-section { transform-origin: center center; }
 
-        /* Card Hover */
-        .work-card .card-image {
-            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .work-card:hover .card-image {
-            transform: scale(1.05);
-        }
-
-        /* Work Slider */
-        .work-slider-container {
-            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-        }
-        .work-slider-track {
-            will-change: transform;
-        }
-        .work-slider-track.dragging {
-            cursor: grabbing;
-        }
-
-        /* Slider Arrow Buttons */
-        .slider-arrow {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 60px;
+        /* Process morph section */
+        .process-morph-pin {
             z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-            border: none;
-            background: none;
-            padding: 0;
+            background: #050505;
         }
-        .work-slider-container:hover .slider-arrow {
-            opacity: 1;
-        }
-        .slider-arrow-left {
+        .process-cut-line {
+            position: absolute;
+            top: -1px;
             left: 0;
-            background: linear-gradient(to right, rgba(5,5,5,0.8), transparent);
-        }
-        .slider-arrow-right {
             right: 0;
-            background: linear-gradient(to left, rgba(5,5,5,0.8), transparent);
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.6) 50%, transparent 100%);
+            transform: scaleX(0);
+            transform-origin: center;
+            z-index: 20;
         }
-        .slider-arrow svg {
-            width: 24px;
-            height: 24px;
-            color: rgba(255,255,255,0.6);
-            transition: color 0.2s, transform 0.2s;
+        .process-cut-glow {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.08), transparent);
+            pointer-events: none;
+            z-index: 19;
         }
-        .slider-arrow:hover svg {
-            color: white;
-            transform: scale(1.2);
-        }
-        .slider-arrow:active svg {
-            transform: scale(1.1);
-        }
-
-        /* --- Sphere Scroll Section --- */
-        .sphere-section {
+        .process-text-stack {
             position: relative;
-            height: 300vh;
-        }
-        .sphere-pin-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
+            min-height: 220px;
             overflow: hidden;
         }
-        #sphere-canvas {
+        .process-slide {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            right: 0;
+            bottom: 0;
+            background: #050505;
+            padding-bottom: 2rem;
         }
-        .sphere-label {
+        .process-slide::before {
+            content: '';
             position: absolute;
-            z-index: 2;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.4s ease;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: #050505;
         }
-        .sphere-label.active {
-            opacity: 1;
+        .process-slide:first-child {
+            opacity: 1 !important;
         }
-        .sphere-label h3 {
-            font-size: 1.5rem;
-            font-weight: 500;
-            color: white;
-            letter-spacing: -0.025em;
-            margin-bottom: 0.5rem;
+        .process-slide:first-child.gsap-controlled {
+            opacity: unset !important;
         }
-        .sphere-label p {
-            font-size: 0.875rem;
-            color: #71717a;
-            max-width: 280px;
-            line-height: 1.6;
-        }
-        @media (min-width: 768px) {
-            .sphere-label h3 {
-                font-size: 2rem;
-            }
-            .sphere-label p {
-                max-width: 320px;
-            }
-        }
-        .sphere-label-left {
-            left: 5%;
-            bottom: 8%;
-            text-align: center;
-        }
-        .sphere-label-right {
-            right: 5%;
-            bottom: 8%;
-            text-align: center;
-        }
-        .sphere-label-right p {
-            margin-left: auto;
-            margin-right: auto;
-        }
-        @media (min-width: 768px) {
-            .sphere-label-left {
-                left: 8%;
-                bottom: auto;
-                top: 50%;
-                transform: translateY(-50%);
-                text-align: left;
-            }
-            .sphere-label-right {
-                right: 8%;
-                bottom: auto;
-                top: 50%;
-                transform: translateY(-50%);
-                text-align: right;
-            }
-            .sphere-label-right p {
-                margin-left: auto;
-                margin-right: 0;
-            }
-        }
-        .sphere-progress-bar {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .sphere-progress-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
-        }
-        .sphere-progress-dot.active {
-            background: rgba(201, 168, 76, 0.8);
-            box-shadow: 0 0 10px rgba(201, 168, 76, 0.5);
-            transform: scale(1.3);
-        }
-        .sphere-progress-line {
-            width: 40px;
-            height: 1px;
-            background: rgba(255,255,255,0.1);
-        }
-        /* --- Focus Styles --- */
-        *:focus-visible {
-            outline: 2px solid #C9A84C;
-            outline-offset: 2px;
-        }
-        button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
-            outline: 2px solid #C9A84C;
-            outline-offset: 2px;
-        }
-        /* Remove default outline on mouse click, keep for keyboard */
-        *:focus:not(:focus-visible) {
-            outline: none;
+        .process-step-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-variant-numeric: tabular-nums;
         }
 
-        /* --- Reduced Motion --- */
+        /* Mobile overrides for process section */
+        @media (max-width: 1023px) {
+            .process-morph-pin {
+                background: #050505 !important;
+                height: auto !important;
+            }
+            .process-text-stack {
+                min-height: auto !important;
+                position: static !important;
+            }
+            .process-slide {
+                position: relative !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 2.5rem;
+            }
+            .process-morph-section {
+                height: auto !important;
+            }
+            .process-progress-bar { display: none !important; }
+        }
+
+        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -373,577 +259,417 @@
                 transition-duration: 0.01ms !important;
                 scroll-behavior: auto !important;
             }
-            .blob { animation: none; }
-            .marquee-track { animation: none; }
-            .letter-bounce { animation: none; }
-            .btn-shimmer::after { animation: none; }
-            .reveal-element {
-                opacity: 1;
-                transform: none;
-            }
+            .hero-portal { clip-path: none !important; }
+
         }
     </style>
 </head>
-<body class="bg-[#050505] text-zinc-300 antialiased selection:bg-[#C9A84C]/30 selection:text-[#F5E6B8] overflow-x-hidden">
 
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md">
+<body class="bg-[#050505] text-zinc-400 antialiased selection:bg-gold/30 selection:text-gold-light">
+
+    <!-- ========== NAVIGATION ========== -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md content-layer" id="nav">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <a href="#" class="group flex items-center gap-0.5 select-none text-mask">
-                <span class="text-mask-content group-hover:text-zinc-200 transition-colors text-lg font-semibold text-white tracking-tighter" style="animation-delay: 0s;">CooCoo</span>
+            <a href="#" class="select-none nav-logo-wrap inline-flex text-lg font-semibold tracking-tighter">
+                <span class="nav-letter">C</span><span class="nav-letter">o</span><span class="nav-letter">o</span><span class="nav-letter">C</span><span class="nav-letter">o</span><span class="nav-letter">o</span>
             </a>
-            
             <div class="flex items-center gap-8">
-                <a href="#work" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors">Work</a>
-                <a href="#about" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors">Studio</a>
-                <button onclick="openVideoModal()" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer">Showreel</button>
-                <a href="#contact" class="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all group">
+                <a href="#work" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors hidden md:block">Work</a>
+                <a href="#about" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors hidden md:block">Studio</a>
+                <button onclick="openShowreel()" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer hidden md:block">Showreel</button>
+                <a href="#contact" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all group">
                     <span class="text-xs font-medium text-white">Get in touch</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right" class="lucide lucide-arrow-right w-3 h-3 text-zinc-400 group-hover:translate-x-1 transition-transform"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-zinc-400 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="relative min-h-screen flex flex-col justify-center items-center overflow-hidden pt-20">
-        
-        <!-- Video Background Layer -->
-        <div class="absolute inset-0 z-0">
-            <video id="hero-video" autoplay="" loop="" muted="" playsinline="" webkit-playsinline="" disableRemotePlayback="" x-webkit-airplay="deny" class="w-full h-full object-cover scale-105 opacity-80">
-                <source src="bg-video.mp4" type="video/mp4">
-            </video>
-            
-            <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/30 to-[#050505]/60 z-10"></div>
-            <div class="absolute inset-0 bg-black/20 z-10"></div>
-            
-            <div class="absolute inset-0 z-10 opacity-30 mix-blend-screen pointer-events-none">
-                <div class="blob delay-1 absolute top-1/4 left-1/4 w-96 h-96 bg-[#C9A84C]/20 rounded-full blur-[100px]"></div>
-                <div class="blob delay-2 absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#8B7225]/10 rounded-full blur-[120px]"></div>
-            </div>
-        </div>
 
-        <!-- Content Layer -->
-        <div class="text-center md:text-left max-w-5xl z-30 mx-auto md:ml-[8%] pr-4 pl-4 relative w-full">
-            <h1 class="md:text-9xl leading-[0.9] text-6xl font-medium text-white tracking-tighter mb-32 md:mb-52 relative z-10">
-                <span class="text-mask"><span class="text-mask-content" style="animation-delay: 0.1s;">We are</span></span><br> 
-                <span class="coocoo-tv-wrap inline-flex font-normal relative mt-2">
-                    <span class="letter-bounce d-0 drop-shadow-2xl">C</span>
-                    <span class="letter-bounce d-1 drop-shadow-2xl">o</span>
-                    <span class="letter-bounce d-2 drop-shadow-2xl">o</span>
-                    <span class="letter-bounce d-3 drop-shadow-2xl">C</span>
-                    <span class="letter-bounce d-4 drop-shadow-2xl">o</span>
-                    <span class="letter-bounce d-5 drop-shadow-2xl">o</span>
-                </span>
-            </h1>
-            
-            <div class="overflow-hidden mb-10">
-                <p class="md:text-xl leading-relaxed text-lg font-normal text-zinc-300 tracking-tight max-w-2xl mx-auto md:mx-0 opacity-0 animate-[fadeInUp_1s_ease-out_0.8s_forwards] translate-y-4 shadow-black drop-shadow-lg" style="animation-fill-mode: forwards;">
+    <!-- ========== HERO — PORTAL EXPANSION ========== -->
+    <section class="hero-section content-layer bg-[#050505]" style="height: 250vh;">
+        <div class="hero-pin relative w-full h-screen overflow-hidden">
+            <svg class="absolute" width="0" height="0" aria-hidden="true" style="position:absolute">
+                <defs>
+                    <clipPath id="oo-clip" clipPathUnits="userSpaceOnUse">
+                        <ellipse class="oo-circle oo-circle-1" cx="0" cy="0" rx="0" ry="0"/>
+                        <ellipse class="oo-circle oo-circle-2" cx="0" cy="0" rx="0" ry="0"/>
+                        <ellipse class="oo-circle oo-circle-3" cx="0" cy="0" rx="0" ry="0"/>
+                        <ellipse class="oo-circle oo-circle-4" cx="0" cy="0" rx="0" ry="0"/>
+                    </clipPath>
+                </defs>
+            </svg>
+            <div class="hero-portal absolute inset-0" style="background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);">
+                <video autoplay loop muted playsinline webkit-playsinline disableRemotePlayback preload="auto" class="w-full h-full object-cover scale-110">
+                    <source src="bg-video.mp4" type="video/mp4">
+                </video>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40"></div>
+            </div>
+
+            <div class="hero-text absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+                <h1 class="text-6xl md:text-9xl font-medium text-white tracking-tighter leading-none text-center">
+                    <span class="block hero-line-1">We are</span>
+                    <span class="block hero-line-2 coocoo-tv-wrap mt-2">
+                        <span class="letter-bounce d-0 drop-shadow-2xl">C</span><span class="letter-bounce d-1 drop-shadow-2xl hero-o" data-o-idx="0">o</span><span class="letter-bounce d-2 drop-shadow-2xl hero-o" data-o-idx="1">o</span><span class="letter-bounce d-3 drop-shadow-2xl">C</span><span class="letter-bounce d-4 drop-shadow-2xl hero-o" data-o-idx="2">o</span><span class="letter-bounce d-5 drop-shadow-2xl hero-o" data-o-idx="3">o</span>
+                    </span>
+                </h1>
+            </div>
+
+            <div class="hero-subtitle absolute bottom-16 left-0 right-0 text-center z-10 opacity-0 pointer-events-none px-6">
+                <p class="text-lg md:text-xl text-zinc-300 max-w-2xl mx-auto font-light leading-relaxed">
                     Crafting the impossible. We blend classic cinematography with state-of-the-art generative AI to produce shots that didn't exist a second ago.
                 </p>
+                <div class="flex gap-4 justify-center mt-8 pointer-events-auto">
+                    <button onclick="openShowreel()" class="btn-shimmer hover:bg-zinc-200 transition-all flex text-sm font-semibold text-black bg-white rounded-full py-3 px-8 gap-2 items-center cursor-pointer active:scale-95 duration-200 shadow-[0_0_30px_rgba(255,255,255,0.25)] ring-4 ring-white/5 hover:ring-white/10">
+                        <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-white ml-0.5"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                        Watch Showreel
+                    </button>
+                    <a href="#work" class="px-8 py-3 bg-black/20 backdrop-blur-sm border border-zinc-500/50 text-zinc-300 text-sm font-medium rounded-full hover:border-white hover:text-white transition-all hover:bg-white/10">
+                        View Projects
+                    </a>
+                </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 items-center justify-center md:justify-start opacity-0 animate-[fadeInUp_1s_ease-out_1s_forwards]" style="animation-fill-mode: forwards;">
-                <button onclick="openVideoModal()" class="btn-shimmer hover:bg-zinc-200 transition-all flex text-sm font-semibold text-black bg-white rounded-full pt-3 pr-8 pb-3 pl-8 gap-2 items-center cursor-pointer active:scale-95 duration-200 shadow-[0_0_30px_rgba(255,255,255,0.25)] ring-4 ring-white/5 hover:ring-white/10 group relative z-40">
-                    <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-white ml-0.5"><path d="M8 5v14l11-7z"></path></svg>
-                    </div>
-                    Watch Showreel
-                </button>
-                
-                <a href="#work" class="px-8 py-3 bg-black/20 backdrop-blur-sm border border-zinc-500/50 text-zinc-300 text-sm font-medium rounded-full hover:border-white hover:text-white transition-all hover:bg-white/10 relative z-40">
-                    View Projects
-                </a>
+            <div class="hero-scroll-hint absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 z-10">
+                <span class="text-[10px] uppercase tracking-widest text-zinc-500">Scroll</span>
+                <div class="w-px h-10 bg-gradient-to-b from-zinc-400 to-transparent"></div>
             </div>
-        </div>
-
-        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 animate-[pulse_3s_infinite] z-30">
-            <span class="text-[10px] uppercase tracking-widest text-zinc-400">Scroll</span>
-            <div class="w-px h-12 bg-gradient-to-b from-zinc-400 to-transparent"></div>
         </div>
     </section>
 
-    <!-- Work Section -->
-    <section id="work" class="py-24 md:py-32 relative border-t border-white/5 bg-[#050505] z-20">
+
+    <!-- ========== MANIFESTO — WORD REVEAL ========== -->
+    <section class="manifesto-section content-layer bg-[#050505]" style="min-height: 100vh;">
+        <div class="max-w-5xl mx-auto px-6 py-32 md:py-48 flex items-center min-h-screen">
+            <p class="manifesto-text text-3xl md:text-5xl lg:text-6xl leading-tight font-normal text-zinc-600 tracking-tight">
+                The camera of the future <span class="text-white">has no lens.</span> It has <span class="text-gold">imagination.</span> We specialize in the weird, the wonderful, and the <span class="text-white">warped.</span>
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ========== SELECTED SHOTS — VIDEO GRID ========== -->
+    <section id="work" class="content-layer bg-[#050505] py-24 md:py-32 border-t border-white/5">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 reveal-element">
-                <div class="">
-                    <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Selected Shots</h2>
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                <div>
+                    <h2 class="shots-title text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Selected Shots</h2>
                     <p class="text-zinc-500 max-w-md text-sm leading-relaxed">
                         A curation of our finest hallucinations. 100% generated, 0% captured.
                     </p>
                 </div>
             </div>
-
-            <!-- Video Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-                <!-- Item 1: Hybrid -->
-                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden cursor-default md:cursor-none reveal-element delay-100">
-                    <video autoplay loop muted playsinline webkit-playsinline class="card-image w-full h-full object-cover opacity-80">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="0.95">
+                    <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
                         <source src="https://pub-fdae30bcb29e4844a63f306d24990529.r2.dev/lyg.mp4" type="video/mp4">
                     </video>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-                        <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                            <h3 class="text-xl font-medium text-white tracking-tight">Hybrid</h3>
-                        </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Hybrid</h3>
                     </div>
                 </div>
-
-                <!-- Item 2: Style Transfer -->
-                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden cursor-default md:cursor-none reveal-element delay-200">
-                    <video autoplay loop muted playsinline webkit-playsinline class="card-image w-full h-full object-cover opacity-80">
+                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="1.05">
+                    <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
                         <source src="https://pub-fdae30bcb29e4844a63f306d24990529.r2.dev/lyg2.mp4" type="video/mp4">
                     </video>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-                        <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                            <h3 class="text-xl font-medium text-white tracking-tight">Style Transfer</h3>
-                        </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Style Transfer</h3>
                     </div>
                 </div>
-
             </div>
         </div>
     </section>
 
-    <!-- Work Section -->
-    <section id="work-videos" class="py-24 md:py-32 relative border-t border-white/5 bg-[#050505] z-20">
-        <div class="max-w-7xl mx-auto px-6 mb-16 reveal-element">
+
+    <!-- ========== WORK — HORIZONTAL SCROLL ========== -->
+    <section class="hscroll-section content-layer bg-[#050505] border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 pt-24 md:pt-32 pb-8">
             <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Work</h2>
-            <p class="text-zinc-500 max-w-md text-sm leading-relaxed">
-                Full projects and productions.
-            </p>
+            <p class="text-zinc-500 max-w-md text-sm leading-relaxed">Full projects and productions.</p>
         </div>
+        <div class="hscroll-wrap relative overflow-hidden">
+            <div class="hscroll-track flex gap-4 pl-6 py-8" style="width: max-content;">
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('iWtr96jxALU')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="https://img.youtube.com/vi/iWtr96jxALU/maxresdefault.jpg" alt="Opekempe" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('Gb0MAEP_RfE')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="https://img.youtube.com/vi/Gb0MAEP_RfE/maxresdefault.jpg" alt="EVIOL" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('_QGrXS9tjNs')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="https://img.youtube.com/vi/_QGrXS9tjNs/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('F_x8DMlv7Qo')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="thumb-F_x8DMlv7Qo.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('6k2RtxQQYy8')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="https://img.youtube.com/vi/6k2RtxQQYy8/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('hyQth5k_43k')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="thumb-hyQth5k_43k.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('c_tPZP08MMw')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="thumb-c_tPZP08MMw.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('o5bqEXbkxmA')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="images/thumb-o5bqEXbkxmA.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('qH8Hcp03kq0')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="https://img.youtube.com/vi/qH8Hcp03kq0/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('jOW0cvbJ1zU')">
+                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
+                        <img src="https://img.youtube.com/vi/jOW0cvbJ1zU/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-shrink-0 w-6"></div>
+            </div>
+        </div>
+    </section>
 
-        <!-- Horizontal Slider -->
-        <div class="work-slider-container relative w-full overflow-hidden reveal-element delay-100">
-            <button class="slider-arrow slider-arrow-left" id="slider-arrow-left" aria-label="Scroll left">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-            <button class="slider-arrow slider-arrow-right" id="slider-arrow-right" aria-label="Scroll right">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-            <div class="work-slider-track flex" id="work-slider-track">
-                <!-- Set 1 -->
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('iWtr96jxALU')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/iWtr96jxALU/maxresdefault.jpg" alt="Opekempe" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
+
+    <!-- ========== MARQUEE ========== -->
+    <section class="content-layer bg-[#050505] border-y border-white/5 overflow-hidden py-10 relative" style="z-index: 20;">
+        <div class="marquee-container w-full">
+            <div class="flex gap-16 w-max" style="animation: marquee 35s linear infinite;">
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
+                <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ========== HOW WE WORK ========== -->
+    <section class="process-morph-section content-layer" id="process" style="height: 250vh;">
+        <div class="process-morph-pin flex items-start relative overflow-hidden" style="height: 50vh;">
+            <div class="process-cut-line"></div>
+            <div class="process-cut-glow"></div>
+            <div class="max-w-7xl mx-auto px-6 w-full pt-8">
+                <div>
+                    <div class="flex flex-col justify-start max-w-2xl">
+                        <h2 class="process-main-title text-3xl md:text-5xl font-medium text-white tracking-tighter mb-3">How We Work</h2>
+                        <p class="text-zinc-500 max-w-lg text-sm leading-relaxed mb-12">
+                            From brief to final delivery. We plug into your production at any stage.
+                        </p>
+
+                        <div class="process-text-stack">
+                            <div class="process-slide" data-step="0">
+                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">01</div>
+                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Brief</h3>
+                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">You share the vision — storyboards, references, scripts, or just a wild idea. We figure out what AI can do with it.</p>
+                            </div>
+                            <div class="process-slide opacity-0" data-step="1">
+                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">02</div>
+                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Generate</h3>
+                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">We produce initial concepts — locations, wardrobe explorations, camera tests — fast enough to iterate in real time.</p>
+                            </div>
+                            <div class="process-slide opacity-0" data-step="2">
+                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">03</div>
+                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Refine</h3>
+                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">Rounds of iteration on style, composition, and detail. We dial in until it matches the director's eye exactly.</p>
+                            </div>
+                            <div class="process-slide opacity-0" data-step="3">
+                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">04</div>
+                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Deliver</h3>
+                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">Final assets exported production-ready — upscaled, color-graded, and formatted for your pipeline.</p>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('Gb0MAEP_RfE')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/Gb0MAEP_RfE/maxresdefault.jpg" alt="EVIOL" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
+
+                        <!-- Progress bar -->
+                        <div class="process-progress-bar flex gap-3 mt-10">
+                            <div class="process-dot w-8 h-1 rounded-full bg-gold transition-colors duration-300"></div>
+                            <div class="process-dot w-8 h-1 rounded-full bg-zinc-700 transition-colors duration-300"></div>
+                            <div class="process-dot w-8 h-1 rounded-full bg-zinc-700 transition-colors duration-300"></div>
+                            <div class="process-dot w-8 h-1 rounded-full bg-zinc-700 transition-colors duration-300"></div>
                         </div>
                     </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('_QGrXS9tjNs')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/_QGrXS9tjNs/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('F_x8DMlv7Qo')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-F_x8DMlv7Qo.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('6k2RtxQQYy8')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/6k2RtxQQYy8/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('hyQth5k_43k')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-hyQth5k_43k.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('c_tPZP08MMw')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-c_tPZP08MMw.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('o5bqEXbkxmA')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="images/thumb-o5bqEXbkxmA.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('qH8Hcp03kq0')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/qH8Hcp03kq0/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('jOW0cvbJ1zU')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/jOW0cvbJ1zU/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Set 2 (duplicate for seamless loop) -->
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('iWtr96jxALU')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/iWtr96jxALU/maxresdefault.jpg" alt="Opekempe" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('Gb0MAEP_RfE')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/Gb0MAEP_RfE/maxresdefault.jpg" alt="EVIOL" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('_QGrXS9tjNs')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/_QGrXS9tjNs/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('F_x8DMlv7Qo')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-F_x8DMlv7Qo.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('6k2RtxQQYy8')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/6k2RtxQQYy8/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('hyQth5k_43k')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-hyQth5k_43k.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('c_tPZP08MMw')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-c_tPZP08MMw.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('o5bqEXbkxmA')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="images/thumb-o5bqEXbkxmA.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('qH8Hcp03kq0')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/qH8Hcp03kq0/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 px-2 cursor-pointer group" onclick="openWorkVideo('jOW0cvbJ1zU')">
-                    <div class="relative w-[400px] md:w-[500px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/jOW0cvbJ1zU/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Sphere Scroll Section -->
-    <section class="sphere-section border-t border-white/5 bg-[#050505] relative z-20" id="sphere-scroll">
-        <div class="sphere-pin-container" id="sphere-pin">
-            <canvas id="sphere-canvas"></canvas>
 
-            <!-- Labels -->
-            <div class="sphere-label sphere-label-left" id="label-ai">
-                <h3>AI Generated</h3>
-                <p>Concept to final render using only prompt engineering and seed variations.</p>
-            </div>
-            <div class="sphere-label sphere-label-right" id="label-hybrid">
-                <h3>Hybrid</h3>
-                <p>Enhancing traditional footage with style transfers and generative in-painting.</p>
-            </div>
-            <div class="sphere-label sphere-label-left" id="label-cgi">
-                <h3>Full CGI</h3>
-                <p>Traditional 3D pipeline expertise including Cinema 4D, Blender, and Unreal Engine.</p>
-            </div>
-
-            <!-- Progress dots -->
-            <div class="sphere-progress-bar">
-                <div class="sphere-progress-dot active" id="dot-0"></div>
-                <div class="sphere-progress-line"></div>
-                <div class="sphere-progress-dot" id="dot-1"></div>
-                <div class="sphere-progress-line"></div>
-                <div class="sphere-progress-dot" id="dot-2"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How We Work Section -->
-    <section id="process" class="py-24 md:py-32 relative border-t border-white/5 bg-[#050505] z-20">
+    <!-- ========== CAPABILITIES ========== -->
+    <section class="content-layer py-24 md:py-32 border-t border-white/5 bg-[#050505] relative" style="z-index: 30;">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="mb-16 reveal-element">
-                <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">How We Work</h2>
-                <p class="text-zinc-500 max-w-lg text-sm leading-relaxed">
-                    From brief to final delivery. We plug into your production at any stage.
-                </p>
-            </div>
-
-            <!-- Process Steps -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-24">
-                <div class="relative reveal-element delay-100">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/30 flex items-center justify-center text-sm font-semibold text-[#D4AF37]">1</div>
-                        <div class="hidden md:block flex-1 h-px bg-gradient-to-r from-[#C9A84C]/30 to-transparent"></div>
-                    </div>
-                    <h3 class="text-lg font-medium text-white mb-2">Brief</h3>
-                    <p class="text-sm text-zinc-500 leading-relaxed">You share the vision — storyboards, references, scripts, or just a wild idea. We figure out what AI can do with it.</p>
-                </div>
-                <div class="relative reveal-element delay-200">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/30 flex items-center justify-center text-sm font-semibold text-[#D4AF37]">2</div>
-                        <div class="hidden md:block flex-1 h-px bg-gradient-to-r from-[#C9A84C]/30 to-transparent"></div>
-                    </div>
-                    <h3 class="text-lg font-medium text-white mb-2">Generate</h3>
-                    <p class="text-sm text-zinc-500 leading-relaxed">We produce initial concepts — locations, wardrobe explorations, camera tests — fast enough to iterate in real time.</p>
-                </div>
-                <div class="relative reveal-element delay-300">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/30 flex items-center justify-center text-sm font-semibold text-[#D4AF37]">3</div>
-                        <div class="hidden md:block flex-1 h-px bg-gradient-to-r from-[#C9A84C]/30 to-transparent"></div>
-                    </div>
-                    <h3 class="text-lg font-medium text-white mb-2">Refine</h3>
-                    <p class="text-sm text-zinc-500 leading-relaxed">Rounds of iteration on style, composition, and detail. We dial in until it matches the director's eye exactly.</p>
-                </div>
-                <div class="relative reveal-element delay-400">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/30 flex items-center justify-center text-sm font-semibold text-[#D4AF37]">4</div>
-                    </div>
-                    <h3 class="text-lg font-medium text-white mb-2">Deliver</h3>
-                    <p class="text-sm text-zinc-500 leading-relaxed">Final assets exported production-ready — upscaled, color-graded, and formatted for your pipeline.</p>
-                </div>
-            </div>
-
-            <!-- Capabilities -->
-            <div class="mb-8 reveal-element">
+            <div class="mb-8">
                 <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-8">Capabilities</h3>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Pre-Production -->
-                <div class="bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-[#C9A84C]/20 transition-all reveal-element delay-100">
+                <div class="cap-card bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-gold/20 transition-all backdrop-blur-sm">
                     <div class="flex items-center gap-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-[#D4AF37]"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
                         <h4 class="text-sm font-medium text-white">Pre-Production</h4>
                     </div>
                     <ul class="space-y-2">
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Location scouting & set design</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Wardrobe & styling exploration</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Storyboard generation</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Location scouting &amp; set design</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Wardrobe &amp; styling exploration</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Storyboard generation</li>
                     </ul>
                 </div>
-
-                <!-- Production -->
-                <div class="bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-[#C9A84C]/20 transition-all reveal-element delay-200">
+                <div class="cap-card bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-gold/20 transition-all backdrop-blur-sm">
                     <div class="flex items-center gap-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-[#D4AF37]"><path d="m15.2 16.9-.9-.4"/><path d="m15.2 19.9-.9-.4"/><path d="M16 2v2"/><path d="M16 14v2"/><path d="m17.4 7.6-.4-.9"/><path d="m17.4 10.6-.4-.9"/><path d="m19.1 4.9-.4-.9"/><path d="m19.1 7.9-.4-.9"/><path d="m6.7 17.6-.9.4"/><path d="m6.7 20.6-.9.4"/><path d="M2 10h2"/><path d="M2 14h4"/><path d="m4.3 12.1-.9-.4"/><path d="m4.3 15.1-.9-.4"/><rect x="2" y="18" width="20" height="4" rx="2"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
                         <h4 class="text-sm font-medium text-white">Production</h4>
                     </div>
                     <ul class="space-y-2">
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>AI video generation</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Camera & motion control</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Style transfer on live footage</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Character & environment generation</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>AI video generation</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Camera &amp; motion control</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Style transfer on live footage</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Character &amp; environment generation</li>
                     </ul>
                 </div>
-
-                <!-- Post-Production -->
-                <div class="bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-[#C9A84C]/20 transition-all reveal-element delay-300">
+                <div class="cap-card bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-gold/20 transition-all backdrop-blur-sm">
                     <div class="flex items-center gap-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-[#D4AF37]"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
                         <h4 class="text-sm font-medium text-white">Post-Production</h4>
                     </div>
                     <ul class="space-y-2">
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Inpainting & object removal</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>AI relighting & color grading</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Upscaling & enhancement</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-[#C9A84C]/60 mt-0.5">-</span>Background extension & compositing</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Inpainting &amp; object removal</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>AI relighting &amp; color grading</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Upscaling &amp; enhancement</li>
+                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Background extension &amp; compositing</li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Motto Marquee -->
-    <section class="border-y border-white/5 bg-white/[0.02] overflow-hidden py-12 relative z-20">
-        <div class="marquee-container w-full">
-            <div class="marquee-track opacity-40 hover:opacity-60 transition-all duration-500">
-                <!-- Set 1 -->
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <!-- Set 2 (Duplicate for loop) -->
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">IF YOU CAN IMAGINE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-                <span class="text-lg font-bold text-white tracking-tight flex-shrink-0">WE CAN GENERATE IT</span>
-                <span class="text-lg font-light text-[#D4AF37] tracking-tight flex-shrink-0">/</span>
-            </div>
-        </div>
-    </section>
 
-    <!-- About Section -->
-    <section class="md:py-32 pt-24 pb-24 relative z-20" id="about">
+    <!-- ========== ABOUT / TEAM ========== -->
+    <section id="about" class="content-layer py-24 md:py-32 bg-[#050505] relative" style="z-index: 20;">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-24 gap-x-12 gap-y-12">
-                
-                <!-- Sticky Title -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-24 gap-12">
                 <div class="lg:col-span-4">
-                    <div class="sticky top-32 reveal-element">
-                        <div class="w-12 h-12 bg-[#C9A84C] rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(201,168,76,0.3)]">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap" class="lucide lucide-zap w-6 h-6 text-white"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg>
+                    <div class="lg:sticky lg:top-32">
+                        <div class="w-12 h-12 bg-gold rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(201,168,76,0.3)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
                         </div>
                         <h2 class="text-3xl font-medium text-white tracking-tight mb-6">The Team</h2>
                         <p class="text-zinc-500 text-sm leading-relaxed mb-8">
                             CooCoo is a collective of directors, prompters, and creative coders. We don't just use tools; we break them to make art.
                         </p>
-                        
                         <div class="space-y-4">
-                            <div class="flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:border-white/20 transition-all hover:bg-zinc-900 group cursor-default">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="cpu" class="lucide lucide-cpu w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"><path d="M12 20v2"></path><path d="M12 2v2"></path><path d="M17 20v2"></path><path d="M17 2v2"></path><path d="M2 12h2"></path><path d="M2 17h2"></path><path d="M2 7h2"></path><path d="M20 12h2"></path><path d="M20 17h2"></path><path d="M20 7h2"></path><path d="M7 20v2"></path><path d="M7 2v2"></path><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="8" y="8" width="8" height="8" rx="1"></rect></svg>
-                                <div class="">
+                            <div class="flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:border-white/20 transition-all hover:bg-zinc-900 group cursor-default backdrop-blur-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M17 2v2"/><path d="M7 2v2"/><path d="M2 7h2"/><path d="M2 17h2"/><path d="M20 7h2"/><path d="M20 17h2"/><path d="M17 20v2"/><path d="M7 20v2"/></svg>
+                                <div>
                                     <h4 class="text-sm font-medium text-white">Neural Rendering</h4>
                                     <p class="text-xs text-zinc-500">Custom diffusion models</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:border-white/20 transition-all hover:bg-zinc-900 group cursor-default">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-lucide="layers" class="lucide lucide-layers w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>
-                                <div class="">
+                            <div class="flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:border-white/20 transition-all hover:bg-zinc-900 group cursor-default backdrop-blur-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>
+                                <div>
                                     <h4 class="text-sm font-medium text-white">Mixed Reality</h4>
                                     <p class="text-xs text-zinc-500">Live action + AI blending</p>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Team Members Section -->
                         <div class="mt-8 pt-8 border-t border-white/5">
                             <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-4">Leadership</h3>
                             <div class="space-y-4">
-                                <!-- Nick -->
                                 <div class="flex items-center gap-3 group cursor-default">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10 relative">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
                                         <img src="nick.jpg" alt="Nick" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
                                     </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-white group-hover:text-[#D4AF37] transition-colors">Nick</div>
-                                    </div>
+                                    <div class="text-sm font-medium text-white group-hover:text-gold transition-colors">Nick</div>
                                 </div>
-                                <!-- Michael -->
                                 <div class="flex items-center gap-3 group cursor-default">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10 relative">
-                                        <img src="https://images.unsplash.com/photo-1531384441138-2736e62e0919?q=80&amp;w=250&amp;auto=format&amp;fit=crop" alt="Michael" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
+                                        <img src="https://images.unsplash.com/photo-1531384441138-2736e62e0919?q=80&w=250&auto=format&fit=crop" alt="Michael" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
                                     </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-white group-hover:text-[#D4AF37] transition-colors">Michael</div>
-                                    </div>
+                                    <div class="text-sm font-medium text-white group-hover:text-gold transition-colors">Michael</div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
-                <!-- Big Text Content -->
                 <div class="lg:col-span-8 flex flex-col justify-center">
-                    <p class="text-2xl md:text-4xl leading-tight font-normal text-zinc-400 mb-12 reveal-element">
+                    <p class="about-text text-2xl md:text-4xl leading-tight font-normal text-zinc-500 mb-12">
                         The camera of the future has no lens. It has <span class="text-white">imagination</span>. At CooCoo, we specialize in the weird, the wonderful, and the warped. From music videos to feature film backdrops, we generate worlds that defy physics.
                     </p>
                 </div>
@@ -951,421 +677,595 @@
         </div>
     </section>
 
-    <!-- Fun CTA Section -->
-    <section class="py-32 relative overflow-hidden z-20">
-        <div class="transform origin-bottom-right bg-[#8B7225]/10 absolute top-0 right-0 bottom-0 left-0 skew-y-3 pointer-events-none"></div>
-        <div class="absolute inset-0 z-0 bg-gradient-to-b from-transparent to-[#8B7225]/5"></div>
-        
-        <div class="max-w-6xl mx-auto px-6 relative z-10 reveal-element">
+
+    <!-- ========== CTA + CONTACT ========== -->
+    <section class="content-layer py-32 relative overflow-hidden bg-[#050505]" id="contact" style="z-index: 20;">
+        <div class="max-w-6xl mx-auto px-6 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div class="text-left">
-            <h2 class="text-5xl md:text-7xl font-medium tracking-tighter text-white mb-8">
-                Let's get <span class="text-slate-50 relative inline-block">
-                    CooCoo
-                    <svg class="absolute -bottom-2 w-full h-3 text-[#C9A84C]" viewBox="0 0 100 20" preserveAspectRatio="none">
-                        <path d="M0 10 Q 50 20 100 10" stroke="currentColor" stroke-width="3" fill="none"></path>
-                    </svg>
-                </span> together.
-            </h2>
-            <p class="text-zinc-400 mb-10 lg:mb-0 text-lg">Have a crazy idea? We have the GPUs.</p>
-            </div>
-
-            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="space-y-4 text-left">
-                <input type="hidden" name="access_key" value="ae9dc04d-c5c9-48f4-b46f-e80050b74783">
-                <input type="hidden" name="subject" value="New inquiry from CooCoo AI website">
-                <input type="hidden" name="from_name" value="CooCoo AI Website">
-                <input type="checkbox" name="botcheck" class="hidden" style="display:none">
-
-                <div class="flex flex-col gap-1 reveal-element delay-100">
-                    <label for="email" class="text-xs text-zinc-500 font-medium ml-1">Email</label>
-                    <input type="email" name="email" required placeholder="Enter your email" class="focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] focus:outline-none transition-all placeholder:text-zinc-600 text-sm text-white bg-zinc-900/80 w-full border-zinc-800 border rounded-lg pt-3 pr-4 pb-3 pl-4" id="email">
+                <div class="text-left">
+                    <h2 class="cta-title text-5xl md:text-7xl font-medium tracking-tighter text-white mb-8">
+                        Let's get <span class="text-white relative inline-block">CooCoo<svg class="absolute -bottom-2 w-full h-3 text-gold" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 Q 50 20 100 10" stroke="currentColor" stroke-width="3" fill="none"/></svg></span> together.
+                    </h2>
+                    <p class="text-zinc-400 mb-10 lg:mb-0 text-lg">Have a crazy idea? We have the GPUs.</p>
                 </div>
-
-                <div class="flex flex-col gap-1 reveal-element delay-200">
-                    <label for="message" class="text-xs text-zinc-500 font-medium ml-1">Message</label>
-                    <textarea id="message" name="message" rows="4" required placeholder="Tell us about your project..." class="focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] focus:outline-none transition-all placeholder:text-zinc-600 resize-none text-sm text-white bg-zinc-900/80 w-full border-zinc-800 border rounded-lg pt-3 pr-4 pb-3 pl-4"></textarea>
-                </div>
-
-                <div class="reveal-element delay-300">
-                    <button type="submit" id="submit-btn" class="btn-shimmer hover:bg-zinc-200 transition-transform active:scale-95 flex text-sm font-semibold text-black bg-white w-full rounded-lg mt-2 pt-3 pr-6 pb-3 pl-6 gap-x-2 gap-y-2 items-center justify-center">
+                <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="space-y-4 text-left bg-zinc-900/60 backdrop-blur-md p-8 rounded-2xl border border-white/5">
+                    <input type="hidden" name="access_key" value="ae9dc04d-c5c9-48f4-b46f-e80050b74783">
+                    <input type="hidden" name="subject" value="New inquiry from CooCoo AI website">
+                    <input type="hidden" name="from_name" value="CooCoo AI Website">
+                    <input type="checkbox" name="botcheck" class="hidden" style="display:none">
+                    <div class="flex flex-col gap-1">
+                        <label for="email" class="text-xs text-zinc-500 font-medium ml-1">Email</label>
+                        <input type="email" name="email" id="email" required placeholder="Enter your email" class="focus:border-gold focus:ring-1 focus:ring-gold focus:outline-none transition-all placeholder:text-zinc-600 text-sm text-white bg-zinc-800/80 w-full border-zinc-700 border rounded-lg py-3 px-4">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label for="message" class="text-xs text-zinc-500 font-medium ml-1">Message</label>
+                        <textarea id="message" name="message" rows="4" required placeholder="Tell us about your project..." class="focus:border-gold focus:ring-1 focus:ring-gold focus:outline-none transition-all placeholder:text-zinc-600 resize-none text-sm text-white bg-zinc-800/80 w-full border-zinc-700 border rounded-lg py-3 px-4"></textarea>
+                    </div>
+                    <button type="submit" id="submit-btn" class="btn-shimmer hover:bg-zinc-200 transition-transform active:scale-95 flex text-sm font-semibold text-black bg-white w-full rounded-lg mt-2 py-3 px-6 gap-2 items-center justify-center cursor-pointer">
                         Send Message
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="send" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
                     </button>
-                </div>
-                <p id="form-status" class="text-[10px] text-zinc-600 text-center mt-2 reveal-element delay-400">No spam. Only art.</p>
-            </form>
+                    <p id="form-status" class="text-[10px] text-zinc-600 text-center mt-2">No spam. Only art.</p>
+                </form>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-black border-white/10 border-t pt-16 pb-8 relative z-20" id="contact">
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="content-layer bg-black border-white/10 border-t pt-16 pb-8 relative" style="z-index: 20;">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-16 reveal-element">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-16">
                 <div class="col-span-2 md:col-span-1">
-                    <a href="#" class="flex items-center gap-0.5 mb-6 group select-none">
-                        <span class="text-lg font-bold tracking-tighter text-white">CooCoo</span>
-                    </a>
-                    <p class="leading-relaxed text-xs text-zinc-500">Athens <br> London <br> </p>
+                    <a href="#" class="text-lg font-bold tracking-tighter text-white mb-6 block select-none">CooCoo</a>
+                    <p class="leading-relaxed text-xs text-zinc-500">Athens<br>London</p>
                 </div>
-                
-                <div class="">
+                <div>
                     <h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-4">Sitemap</h4>
                     <ul class="space-y-2 text-sm text-zinc-500">
-                        <li class=""><a href="#" class="hover:text-white transition-colors">Home</a></li>
-                        <li class=""><a href="#work" class="hover:text-white transition-colors">Work</a></li>
-                        <li class=""><a href="#about" class="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#work" class="hover:text-white transition-colors">Work</a></li>
+                        <li><a href="#about" class="hover:text-white transition-colors">About</a></li>
                     </ul>
                 </div>
-
-                <div class="">
+                <div>
                     <h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-4">Contact</h4>
                     <ul class="space-y-2 text-sm text-zinc-500">
-                        <li class=""><a href="#contact" class="hover:text-white transition-colors">Get in touch</a></li>
-                        <li class=""><button onclick="document.getElementById('contact-form').scrollIntoView({behavior:'smooth'})" class="hover:text-white transition-colors cursor-pointer">Send a message</button></li>
+                        <li><a href="#contact" class="hover:text-white transition-colors">Get in touch</a></li>
+                        <li><button onclick="document.getElementById('contact-form').scrollIntoView({behavior:'smooth'})" class="hover:text-white transition-colors cursor-pointer">Send a message</button></li>
                     </ul>
                 </div>
             </div>
-
-            <!-- Bottom Bar -->
-            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 reveal-element delay-100">
-                <p class="text-xs text-zinc-600">© 2026 CooCoo Studios. All rights reserved.</p>
+            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5">
+                <p class="text-xs text-zinc-600">&copy; 2026 CooCoo Studios. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Video Modal -->
+
+    <!-- ========== VIDEO MODAL ========== -->
     <div id="video-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="relative w-full max-w-5xl aspect-video mx-4 bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 group scale-95 transition-transform duration-300" id="video-container">
+        <div class="relative w-full max-w-5xl aspect-video mx-4 bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 scale-95 transition-transform duration-300" id="video-container">
             <button onclick="closeVideoModal()" class="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors cursor-pointer border border-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x w-5 h-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
-            <iframe id="youtube-frame" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+            <iframe id="youtube-frame" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
-        <!-- Click outside to close -->
         <div class="absolute inset-0 -z-10 cursor-pointer" onclick="closeVideoModal()"></div>
     </div>
 
-    <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
 
-        // 1. Scroll Reveal Intersection Observer
-        document.addEventListener('DOMContentLoaded', () => {
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1
-            };
+    <!-- ========== MAIN SCRIPT (GSAP + Lenis) ========== -->
+    <script type="module">
+    // ——— Lenis Smooth Scroll ———
+    const lenis = new Lenis({
+        lerp: 0.1,
+        smoothWheel: true,
+        wheelMultiplier: 0.8
+    });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
 
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target); // Only animate once
-                    }
-                });
-            }, observerOptions);
+    gsap.registerPlugin(ScrollTrigger, SplitText);
 
-            const elementsToReveal = document.querySelectorAll('.reveal-element');
-            elementsToReveal.forEach(el => observer.observe(el));
+    const isDesktop = window.innerWidth >= 1024;
+
+
+    // GSAP SCROLL ANIMATIONS (all devices)
+    // ——————————————————————————————————————————
+
+    // ——— HERO: OO Circle Setup (4 individual circles, one per O) ———
+    const heroPortalEl = document.querySelector('.hero-portal');
+    const heroOLetters = document.querySelectorAll('.hero-o');
+
+    function updateOOCircles() {
+        if (!heroPortalEl || heroOLetters.length < 4) return;
+        const portalRect = heroPortalEl.getBoundingClientRect();
+
+        heroOLetters.forEach((oEl, i) => {
+            const rect = oEl.getBoundingClientRect();
+            const charHeight = rect.bottom - rect.top;
+            const charWidth = rect.right - rect.left;
+            // Center of the O hole relative to portal
+            // Constants from canvas flood-fill of Space Grotesk "o" at 128px
+            const cx = rect.left + charWidth * 0.49 - portalRect.left;
+            const cy = rect.top + charHeight * 0.575 - portalRect.top;
+            const rx = charHeight * 0.225;
+            const ry = charHeight * 0.225;
+
+            const ellipse = document.querySelector('.oo-circle-' + (i + 1));
+            if (ellipse) {
+                ellipse.setAttribute('cx', cx);
+                ellipse.setAttribute('cy', cy);
+                // Hide clip hole when letter is hidden (TV static flicker)
+                const hidden = oEl.classList.contains('letter-hidden');
+                ellipse.setAttribute('rx', hidden ? 0 : rx);
+                ellipse.setAttribute('ry', hidden ? 0 : ry);
+            }
         });
+    }
 
-        // 2. Video Modal Logic with Scale Animation
-        function openWorkVideo(videoId) {
-            const modal = document.getElementById('video-modal');
-            const container = document.getElementById('video-container');
-            const iframe = document.getElementById('youtube-frame');
-
-            iframe.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&rel=0";
-
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                container.classList.remove('scale-95');
-                container.classList.add('scale-100');
-            }, 10);
-
-            document.body.style.overflow = 'hidden';
+    // Initial position (may use fallback metrics before fonts load)
+    updateOOCircles();
+    // Recalculate once fonts are fully loaded for accurate positions
+    document.fonts.ready.then(() => {
+        updateOOCircles();
+        // Force hero video to play
+        const heroVideo = document.querySelector('.hero-portal video');
+        if (heroVideo) {
+            heroVideo.muted = true;
+            heroVideo.play().catch(() => {});
         }
+    });
+    // Extra: force video play on DOMContentLoaded and window load
+    ['DOMContentLoaded', 'load'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            const v = document.querySelector('.hero-portal video');
+            if (v) { v.muted = true; v.play().catch(() => {}); }
+        });
+    });
+    // Fallback: play video on first user interaction if autoplay was blocked
+    function tryPlayHeroVideo() {
+        const v = document.querySelector('.hero-portal video');
+        if (v && v.paused) { v.muted = true; v.play().catch(() => {}); }
+    }
+    ['scroll', 'click', 'touchstart', 'mousemove'].forEach(evt => {
+        document.addEventListener(evt, tryPlayHeroVideo, { once: true, passive: true });
+    });
+    // Extra safety recalc
+    setTimeout(updateOOCircles, 500);
+    setTimeout(updateOOCircles, 1000);
+    window.addEventListener('resize', updateOOCircles);
 
-        function openVideoModal() {
-            const modal = document.getElementById('video-modal');
-            const container = document.getElementById('video-container');
-            const iframe = document.getElementById('youtube-frame');
+    // Track scroll progress so we can stop overriding circles during expansion
+    let heroScrollProgress = 0;
 
-            iframe.src = "https://www.youtube.com/embed/6GyFnB5Y4eA?autoplay=1&rel=0";
-            
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                container.classList.remove('scale-95');
-                container.classList.add('scale-100');
-            }, 10);
-            
-            document.body.style.overflow = 'hidden';
+    // Continuously update circle positions to follow letter-bounce animation
+    // but ONLY when the hero text is still visible (before scroll expansion)
+    function trackOOCircles() {
+        if (heroScrollProgress < 0.05) {
+            updateOOCircles();
         }
+        requestAnimationFrame(trackOOCircles);
+    }
+    requestAnimationFrame(trackOOCircles);
 
-        function closeVideoModal() {
-            const modal = document.getElementById('video-modal');
-            const container = document.getElementById('video-container');
-            const iframe = document.getElementById('youtube-frame');
-            
-            modal.classList.add('opacity-0');
-            container.classList.remove('scale-100');
-            container.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                iframe.src = ""; 
-                document.body.style.overflow = ''; 
-            }, 300);
+    // ——— HERO: Portal Expansion ———
+    const heroPin = document.querySelector('.hero-pin');
+    const heroPortal = document.querySelector('.hero-portal');
+    const heroText = document.querySelector('.hero-text');
+    const heroSubtitle = document.querySelector('.hero-subtitle');
+    const heroScrollHint = document.querySelector('.hero-scroll-hint');
+
+    const heroTL = gsap.timeline({
+        scrollTrigger: {
+            trigger: '.hero-section',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.5,
+            pin: heroPin,
+            pinSpacing: false,
+            onUpdate: (self) => { heroScrollProgress = self.progress; }
         }
+    });
 
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape") {
-                closeVideoModal();
+    // Expand both OO circles to fill the screen
+    const maxR = Math.max(window.innerWidth, window.innerHeight) * 1.5;
+    const vpCx = window.innerWidth / 2;
+    const vpCy = window.innerHeight / 2;
+
+    heroTL.to('.oo-circle-1, .oo-circle-2, .oo-circle-3, .oo-circle-4', {
+        attr: { rx: maxR, ry: maxR, cx: vpCx, cy: vpCy },
+        ease: 'power2.inOut',
+        duration: 1
+    }, 0);
+
+    heroTL.to(heroText, {
+        opacity: 0,
+        y: -80,
+        ease: 'power2.in',
+        duration: 0.4
+    }, 0);
+
+    heroTL.to(heroScrollHint, {
+        opacity: 0,
+        duration: 0.15
+    }, 0);
+
+    heroTL.fromTo(heroSubtitle, {
+        opacity: 0, y: 30
+    }, {
+        opacity: 1, y: 0,
+        duration: 0.3,
+        ease: 'power2.out'
+    }, 0.45);
+
+
+    // ——— MANIFESTO: Word-by-word reveal ———
+    const manifestoEl = document.querySelector('.manifesto-text');
+    if (manifestoEl) {
+        const split = new SplitText(manifestoEl, { type: 'words' });
+        gsap.fromTo(split.words,
+            { opacity: 0.15 },
+            {
+                opacity: 1,
+                stagger: 0.05,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.manifesto-section',
+                    start: 'top 70%',
+                    end: 'bottom 30%',
+                    scrub: true
+                }
+            }
+        );
+    }
+
+
+    // ——— SHOTS TITLE: SplitText reveal ———
+    const shotsTitle = document.querySelector('.shots-title');
+    if (shotsTitle) {
+        const splitTitle = new SplitText(shotsTitle, { type: 'chars' });
+        gsap.from(splitTitle.chars, {
+            opacity: 0,
+            y: 40,
+            rotateX: -90,
+            stagger: 0.03,
+            duration: 0.8,
+            ease: 'back.out(1.7)',
+            scrollTrigger: {
+                trigger: shotsTitle,
+                start: 'top 80%',
+                toggleActions: 'play none none none'
+            }
+        });
+    }
+
+
+    // ——— WORK CARDS: Parallax ———
+    document.querySelectorAll('.work-card').forEach(card => {
+        const speed = parseFloat(card.dataset.speed) || 1;
+        gsap.to(card, {
+            y: () => (1 - speed) * 100,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: card,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    });
+
+
+    // ——— HORIZONTAL SCROLL (desktop only) ———
+    const hscrollTrack = document.querySelector('.hscroll-track');
+    const hscrollWrap = document.querySelector('.hscroll-wrap');
+    if (hscrollTrack && hscrollWrap && window.innerWidth >= 768) {
+        function getScrollDistance() {
+            return hscrollTrack.scrollWidth - window.innerWidth;
+        }
+        gsap.to(hscrollTrack, {
+            x: () => -getScrollDistance(),
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.hscroll-section',
+                start: 'top top',
+                end: () => '+=' + getScrollDistance(),
+                scrub: 1,
+                pin: true,
+                anticipatePin: 1,
+                invalidateOnRefresh: true
+            }
+        });
+    } else if (hscrollWrap) {
+        hscrollWrap.style.overflowX = 'auto';
+        hscrollWrap.style.WebkitOverflowScrolling = 'touch';
+    }
+
+
+    // ——— Process section: pin at bottom half, crossfade steps (desktop) ———
+    // NOTE: Must be created AFTER hscroll trigger so pin spacing is accounted for
+    if (isDesktop) {
+        const processTL = gsap.timeline({
+            scrollTrigger: {
+                trigger: '.process-morph-section',
+                start: 'top 50%',
+                end: 'bottom top',
+                scrub: 0.8,
+                pin: '.process-morph-pin',
+                pinSpacing: false
             }
         });
 
-        // 3. Video Autoplay Manager
-        document.addEventListener('DOMContentLoaded', () => {
-            const videos = document.querySelectorAll('video[autoplay]');
-
-            // Force play on first touch (iOS requires user gesture for some videos)
-            let hasInteracted = false;
-            function forcePlayAll() {
-                if (hasInteracted) return;
-                hasInteracted = true;
-                videos.forEach(v => {
-                    v.play().catch(() => {});
-                });
-                document.removeEventListener('touchstart', forcePlayAll);
-                document.removeEventListener('click', forcePlayAll);
-                document.removeEventListener('scroll', forcePlayAll);
+        // Animate the cut line wipe
+        gsap.to('.process-cut-line', {
+            scaleX: 1,
+            duration: 0.4,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: '.process-morph-section',
+                start: 'top 55%',
+                toggleActions: 'play none none reverse'
             }
-            document.addEventListener('touchstart', forcePlayAll, { once: true, passive: true });
-            document.addEventListener('click', forcePlayAll, { once: true });
-            document.addEventListener('scroll', forcePlayAll, { once: true, passive: true });
+        });
 
-            // Retry autoplay for any video that stalls
-            videos.forEach(video => {
-                video.addEventListener('stalled', () => {
-                    setTimeout(() => video.play().catch(() => {}), 500);
+        const processSlides = document.querySelectorAll('.process-slide');
+        const processDots = document.querySelectorAll('.process-dot');
+
+        processSlides.forEach((slide, i) => {
+            if (i === 0) {
+                slide.classList.add('gsap-controlled');
+                gsap.set(slide, { opacity: 1, yPercent: 0, zIndex: 1 });
+            } else {
+                gsap.set(slide, { opacity: 1, yPercent: 100, zIndex: i + 1 });
+                const stepDuration = 0.8 / processSlides.length;
+                const enterStart = 0.05 + i * stepDuration;
+                processTL.to(slide,
+                    { yPercent: 0, duration: stepDuration * 0.6, ease: 'power2.out' },
+                    enterStart
+                );
+            }
+        });
+
+        // Progress dots update
+        processTL.to({}, {
+            duration: 1,
+            onUpdate: function() {
+                const p = this.progress();
+                const activeIdx = Math.min(3, Math.floor(p * 4));
+                processDots.forEach((dot, i) => {
+                    dot.style.backgroundColor = i === activeIdx ? '#C9A84C' : '#3f3f46';
                 });
-                video.addEventListener('suspend', () => {
-                    if (video.paused) {
-                        setTimeout(() => video.play().catch(() => {}), 500);
-                    }
-                });
+            }
+        }, 0);
+
+        // Hold the last step visible, then fade out at the very end
+        const processMorphPin = document.querySelector('.process-morph-pin');
+        processTL.to(processMorphPin, {
+            opacity: 0,
+            duration: 0.05,
+            ease: 'power2.in'
+        }, 0.95);
+    }
+
+
+    // ——— PROCESS TITLE: SplitText (desktop morph version) ———
+    if (isDesktop) {
+        const processTitle = document.querySelector('.process-main-title');
+        if (processTitle) {
+            const splitProcess = new SplitText(processTitle, { type: 'chars' });
+            gsap.from(splitProcess.chars, {
+                opacity: 0,
+                y: 40,
+                rotateX: -90,
+                stagger: 0.03,
+                duration: 0.8,
+                ease: 'back.out(1.7)',
+                scrollTrigger: {
+                    trigger: '.process-morph-section',
+                    start: 'top 80%',
+                    toggleActions: 'play none none none'
+                }
             });
-
-            // Pause off-screen for performance
-            const videoObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    const video = entry.target;
-                    if (entry.isIntersecting) {
-                        video.play().catch(() => {});
-                    } else {
-                        video.pause();
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            videos.forEach(video => videoObserver.observe(video));
-        });
-
-        // 4. Work Slider - Auto-scroll, drag, and arrow controls
-        (function() {
-            const track = document.getElementById('work-slider-track');
-            const arrowLeft = document.getElementById('slider-arrow-left');
-            const arrowRight = document.getElementById('slider-arrow-right');
-            if (!track) return;
-
-            let isDragging = false;
-            let startX = 0;
-            let currentTranslate = 0;
-            let prevTranslate = 0;
-            let lastX = 0;
-            let lastTime = 0;
-
-            // Speed state
-            const DEFAULT_SPEED = -0.5;    // px/frame, negative = scroll left
-            const BOOST_SPEED = 4;         // extra px/frame when arrow held
-            const FRICTION = 0.94;         // momentum decay per frame
-            const SETTLE_RATE = 0.08;      // how fast speed returns to default after release
-
-            let speed = DEFAULT_SPEED;     // current speed (used in main loop)
-            let dragVelocity = 0;          // velocity from drag gesture
-            let arrowBoost = 0;            // current arrow boost (-1 left, +1 right, 0 none)
-            let settling = false;          // true when decelerating back to default after drag
-
-            // Kill CSS animation
-            track.style.animation = 'none';
-
-            const halfWidth = track.scrollWidth / 2;
-
-            function wrapPos(x) {
-                let p = x % halfWidth;
-                if (p > 0) p -= halfWidth;
-                return p;
-            }
-
-            function setPosition(x) {
-                currentTranslate = wrapPos(x);
-                track.style.transform = `translateX(${currentTranslate}px)`;
-            }
-
-            // Main animation loop
-            function tick() {
-                if (!isDragging) {
-                    if (settling) {
-                        // Decay drag velocity toward zero
-                        dragVelocity *= FRICTION;
-                        // Once drag velocity is negligible, blend back to default
-                        if (Math.abs(dragVelocity) < 0.3) {
-                            dragVelocity = 0;
-                            settling = false;
-                        }
-                        setPosition(currentTranslate + dragVelocity + DEFAULT_SPEED + arrowBoost * BOOST_SPEED);
-                    } else {
-                        // Normal: default auto-scroll + any arrow boost
-                        setPosition(currentTranslate + DEFAULT_SPEED + arrowBoost * BOOST_SPEED);
-                    }
-                }
-                requestAnimationFrame(tick);
-            }
-            requestAnimationFrame(tick);
-
-            // --- Arrow controls ---
-            function startBoost(direction) {
-                arrowBoost = direction; // -1 = faster left, +1 = right
-            }
-            function stopBoost() {
-                arrowBoost = 0;
-            }
-
-            // Mouse
-            arrowLeft.addEventListener('mousedown', () => startBoost(1));
-            arrowRight.addEventListener('mousedown', () => startBoost(-1));
-            document.addEventListener('mouseup', () => { if (arrowBoost !== 0) stopBoost(); });
-
-            // Touch
-            arrowLeft.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(1); }, { passive: false });
-            arrowRight.addEventListener('touchstart', (e) => { e.preventDefault(); startBoost(-1); }, { passive: false });
-            document.addEventListener('touchend', () => { if (arrowBoost !== 0) stopBoost(); });
-
-            // Prevent arrow clicks from bubbling
-            arrowLeft.addEventListener('click', (e) => e.stopPropagation());
-            arrowRight.addEventListener('click', (e) => e.stopPropagation());
-
-            // --- Drag controls ---
-            function startDrag(x) {
-                isDragging = true;
-                settling = false;
-                dragVelocity = 0;
-                startX = x;
-                lastX = x;
-                lastTime = Date.now();
-                prevTranslate = currentTranslate;
-                track.classList.add('dragging');
-            }
-
-            function moveDrag(x) {
-                if (!isDragging) return;
-                const now = Date.now();
-                const dt = now - lastTime;
-                if (dt > 0) {
-                    dragVelocity = (x - lastX) / dt * 16; // normalize to ~60fps
-                }
-                lastX = x;
-                lastTime = now;
-                setPosition(prevTranslate + (x - startX));
-            }
-
-            function endDrag() {
-                if (!isDragging) return;
-                isDragging = false;
-                track.classList.remove('dragging');
-                // If there's velocity from dragging, let it decay back to default
-                if (Math.abs(dragVelocity) > 0.3) {
-                    settling = true;
-                }
-            }
-
-            // Mouse
-            track.addEventListener('mousedown', (e) => {
-                startDrag(e.clientX);
-                e.preventDefault();
+        }
+    } else {
+        // Mobile: simple fade-in for each process step
+        document.querySelectorAll('.process-slide').forEach((step, i) => {
+            gsap.from(step, {
+                opacity: 0,
+                y: 30,
+                duration: 0.7,
+                ease: 'power2.out',
+                scrollTrigger: {
+                    trigger: step,
+                    start: 'top 85%',
+                    toggleActions: 'play none none none'
+                },
+                delay: i * 0.1
             });
-            document.addEventListener('mousemove', (e) => moveDrag(e.clientX));
-            document.addEventListener('mouseup', endDrag);
+        });
+    }
 
-            // Touch
-            track.addEventListener('touchstart', (e) => {
-                startDrag(e.touches[0].clientX);
-            }, { passive: true });
-            document.addEventListener('touchmove', (e) => {
-                moveDrag(e.touches[0].clientX);
-            }, { passive: true });
-            document.addEventListener('touchend', endDrag);
 
-            // Prevent click on slides after drag
-            let dragStartClickX = 0;
-            track.addEventListener('mousedown', (e) => { dragStartClickX = e.clientX; });
-            track.addEventListener('click', (e) => {
-                if (Math.abs(e.clientX - dragStartClickX) > 10) {
-                    e.stopPropagation();
-                    e.preventDefault();
+    // ——— CAPABILITY CARDS: Staggered reveal ———
+    document.querySelectorAll('.cap-card').forEach((card, i) => {
+        gsap.from(card, {
+            opacity: 0,
+            y: 30,
+            duration: 0.7,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: card,
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+            },
+            delay: i * 0.1
+        });
+    });
+
+
+    // ——— CTA TITLE: Simple reveal ———
+    const ctaTitle = document.querySelector('.cta-title');
+    if (ctaTitle) {
+        gsap.from(ctaTitle, {
+            opacity: 0,
+            y: 40,
+            duration: 1,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: ctaTitle,
+                start: 'top 80%',
+                toggleActions: 'play none none none'
+            }
+        });
+    }
+
+
+    // ——— ABOUT TEXT: Word reveal ———
+    const aboutText = document.querySelector('.about-text');
+    if (aboutText) {
+        const splitAbout = new SplitText(aboutText, { type: 'words' });
+        gsap.fromTo(splitAbout.words,
+            { opacity: 0.15 },
+            {
+                opacity: 1,
+                stagger: 0.03,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: aboutText,
+                    start: 'top 70%',
+                    end: 'bottom 40%',
+                    scrub: true
                 }
-            }, true);
-        })();
+            }
+        );
+    }
 
-        // 5. Contact Form Submission
-        const form = document.getElementById('contact-form');
-        const submitBtn = document.getElementById('submit-btn');
-        const formStatus = document.getElementById('form-status');
 
-        form.addEventListener('submit', async function(e) {
+    // Force recalculate all trigger positions after setup
+    ScrollTrigger.refresh();
+
+    // ——— NAV: Hide/show on scroll ———
+    const nav = document.getElementById('nav');
+    let lastScrollY = 0;
+    lenis.on('scroll', ({ scroll }) => {
+        if (scroll > lastScrollY && scroll > 100) {
+            nav.style.transform = 'translateY(-100%)';
+            nav.style.transition = 'transform 0.3s ease';
+        } else {
+            nav.style.transform = 'translateY(0)';
+            nav.style.transition = 'transform 0.3s ease';
+        }
+        lastScrollY = scroll;
+    });
+
+
+    // ——— VIDEO AUTOPLAY MANAGER ———
+    const videos = document.querySelectorAll('video[autoplay]');
+    const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.play().catch(() => {});
+            } else {
+                entry.target.pause();
+            }
+        });
+    }, { threshold: 0.1 });
+    videos.forEach(v => videoObserver.observe(v));
+
+    function forcePlay() {
+        videos.forEach(v => v.play().catch(() => {}));
+        document.removeEventListener('touchstart', forcePlay);
+        document.removeEventListener('click', forcePlay);
+    }
+    document.addEventListener('touchstart', forcePlay, { once: true, passive: true });
+    document.addEventListener('click', forcePlay, { once: true });
+
+
+    // ——— VIDEO MODAL ———
+    window.openWorkVideo = function(videoId) {
+        const modal = document.getElementById('video-modal');
+        const container = document.getElementById('video-container');
+        const iframe = document.getElementById('youtube-frame');
+        iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+        modal.classList.remove('hidden');
+        lenis.stop();
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            container.classList.remove('scale-95');
+            container.classList.add('scale-100');
+        }, 10);
+    };
+
+    window.openShowreel = function() {
+        window.openWorkVideo('6GyFnB5Y4eA');
+    };
+
+    window.closeVideoModal = function() {
+        const modal = document.getElementById('video-modal');
+        const container = document.getElementById('video-container');
+        const iframe = document.getElementById('youtube-frame');
+        modal.classList.add('opacity-0');
+        container.classList.remove('scale-100');
+        container.classList.add('scale-95');
+        lenis.start();
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            iframe.src = '';
+        }, 300);
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeVideoModal();
+    });
+
+
+    // ——— CONTACT FORM ———
+    const form = document.getElementById('contact-form');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Sending...';
-            formStatus.textContent = '';
+            const btn = document.getElementById('submit-btn');
+            const status = document.getElementById('form-status');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
 
             try {
-                const res = await fetch('https://api.web3forms.com/submit', {
+                const res = await fetch(form.action, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(Object.fromEntries(new FormData(form)))
+                    body: new FormData(form)
                 });
-                const data = await res.json();
-                if (data.success) {
-                    formStatus.textContent = 'Message sent. We\'ll be in touch.';
-                    formStatus.className = 'text-xs text-green-400 text-center mt-2';
+                if (res.ok) {
+                    status.textContent = 'Message sent. We\'ll be in touch.';
+                    status.classList.remove('text-zinc-600');
+                    status.classList.add('text-gold');
                     form.reset();
                 } else {
-                    formStatus.textContent = 'Something went wrong. Try again.';
-                    formStatus.className = 'text-xs text-red-400 text-center mt-2';
+                    throw new Error('Failed');
                 }
-            } catch (err) {
-                formStatus.textContent = 'Network error. Try again.';
-                formStatus.className = 'text-xs text-red-400 text-center mt-2';
+            } catch {
+                status.textContent = 'Something went wrong. Try again.';
+                status.classList.add('text-red-400');
             }
 
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Send Message <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>';
+            btn.disabled = false;
+            btn.innerHTML = 'Send Message <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>';
         });
+    }
+
     </script>
 
     <!-- CooCoo TV Static Noise -->
     <script>
     (function() {
         const wrap = document.querySelector('.coocoo-tv-wrap');
-        if (!wrap) return;
-        const letters = wrap.querySelectorAll('.letter-bounce');
-        if (!letters.length) return;
+        const heroLetters = wrap ? wrap.querySelectorAll('.letter-bounce') : [];
+        const navLetters = document.querySelectorAll('.nav-logo-wrap .nav-letter');
+        const allLetters = [...heroLetters, ...navLetters];
+        if (!allLetters.length) return;
 
-        // Tiny offscreen canvas — 32x32 noise, CSS stretches it for blocky pixel look
         const noiseW = 32;
         const noiseH = 32;
         const offscreen = document.createElement('canvas');
@@ -1376,7 +1276,6 @@
         const data = imageData.data;
         const totalPixels = noiseW * noiseH;
 
-        // Pre-fill alpha channel
         for (let i = 0; i < totalPixels; i++) {
             data[i * 4 + 3] = 255;
         }
@@ -1390,20 +1289,18 @@
             if (now - lastTime < interval) return;
             lastTime = now;
 
-            // Generate gold gradient noise
             for (let i = 0; i < totalPixels; i++) {
                 const idx = i * 4;
                 const t = Math.random();
-                // Gold spectrum: dark amber → warm gold → light champagne
-                data[idx]     = (120 + t * 125) | 0;  // R: 120-245
-                data[idx + 1] = (80 + t * 100) | 0;   // G: 80-180
-                data[idx + 2] = (20 + t * 60) | 0;    // B: 20-80
+                data[idx]     = (120 + t * 125) | 0;
+                data[idx + 1] = (80 + t * 100) | 0;
+                data[idx + 2] = (20 + t * 60) | 0;
             }
             offCtx.putImageData(imageData, 0, 0);
             const url = offscreen.toDataURL();
             const bg = 'url(' + url + ')';
-            for (let i = 0; i < letters.length; i++) {
-                letters[i].style.backgroundImage = bg;
+            for (let i = 0; i < allLetters.length; i++) {
+                allLetters[i].style.backgroundImage = bg;
             }
         }
 
@@ -1419,10 +1316,8 @@
         const letters = Array.from(wrap.querySelectorAll('.letter-bounce'));
         if (!letters.length) return;
 
-        // Each letter independently disappears and reappears at random intervals
         letters.forEach(function(letter) {
             function scheduleFlicker() {
-                // Visible for 2-6 seconds, then disappear for 0.3-0.8 seconds
                 var visibleTime = 2000 + Math.random() * 4000;
                 setTimeout(function() {
                     letter.classList.add('letter-hidden');
@@ -1433,302 +1328,10 @@
                     }, hiddenTime);
                 }, visibleTime);
             }
-            // Stagger initial start so they don't all begin at once
-            setTimeout(scheduleFlicker, Math.random() * 3000);
+            scheduleFlicker();
         });
     })();
     </script>
 
-    <!-- Sphere Animation -->
-    <script type="module">
-        import * as THREE from 'three';
-
-        // --- Shader code ---
-        const vertexShader = `
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            varying vec3 vWorldNormal;
-            varying vec3 vObjectPos;
-            uniform float uProgress; // 0 = water, 0.5 = hybrid, 1 = velvet
-            uniform float uTime;
-
-            void main() {
-                vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
-                vObjectPos = position;
-
-                vec3 pos = position;
-                vec3 n = normalize(position);
-
-                // Velvet: organic surface displacement (fibers shifting)
-                float velvetFactor = smoothstep(0.3, 0.7, uProgress);
-                if (velvetFactor > 0.01) {
-                    float wave1 = sin(n.x * 8.0 + uTime * 0.7) * sin(n.y * 6.0 + uTime * 0.5);
-                    float wave2 = sin(n.z * 10.0 - uTime * 0.9) * sin(n.x * 7.0 + uTime * 0.3);
-                    float wave3 = sin((n.x + n.y) * 5.0 + uTime * 0.6);
-                    float displacement = (wave1 + wave2 * 0.6 + wave3 * 0.4) * 0.012 * velvetFactor;
-                    pos += n * displacement;
-                }
-
-                // Water: ripple surface displacement
-                float waterFactor = 1.0 - smoothstep(0.0, 0.6, uProgress);
-                if (waterFactor > 0.01) {
-                    float r1 = sin(n.x * 3.0 + n.y * 5.0 + uTime * 2.5) * 0.5
-                             + sin(n.y * 4.0 - n.z * 3.0 + uTime * 1.8) * 0.3
-                             + sin(n.z * 6.0 + n.x * 2.0 - uTime * 2.2) * 0.2;
-                    float r2 = sin(n.x * 12.0 + uTime * 3.0) * sin(n.y * 10.0 - uTime * 2.0) * 0.15
-                             + sin(n.z * 14.0 + uTime * 2.5) * sin(n.x * 8.0 + uTime * 1.5) * 0.1;
-                    pos += n * (r1 + r2) * 0.02 * waterFactor;
-                }
-
-                vNormal = normalize(normalMatrix * normal);
-                vPosition = (modelViewMatrix * vec4(pos, 1.0)).xyz;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-            }
-        `;
-
-        const fragmentShader = `
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            varying vec3 vWorldNormal;
-            varying vec3 vObjectPos;
-            uniform float uProgress;
-            uniform float uTime;
-            uniform vec3 uLightDir;
-
-            void main() {
-                vec3 normal = normalize(vNormal);
-                vec3 viewDir = normalize(-vPosition);
-                vec3 lightDir = normalize(uLightDir);
-                vec3 objN = normalize(vObjectPos);
-
-                // --- Water look ---
-                // Caustic patterns — overlapping wave interference
-                float c1 = sin(objN.x * 8.0 + objN.y * 6.0 + uTime * 1.5);
-                float c2 = sin(objN.y * 7.0 - objN.z * 9.0 + uTime * 1.2);
-                float c3 = sin(objN.z * 10.0 + objN.x * 5.0 - uTime * 1.8);
-                float caustic = pow(abs(c1 * c2 + c2 * c3) * 0.5, 1.5);
-
-                // Concentric ripple rings
-                float d1 = length(objN.xy - vec2(0.3, 0.5));
-                float d2 = length(objN.yz - vec2(-0.2, 0.4));
-                float ripple = (sin(d1 * 20.0 - uTime * 3.0) * 0.5 + 0.5
-                             + sin(d2 * 15.0 - uTime * 2.5) * 0.5 + 0.5) * 0.3;
-
-                // Fresnel — strong edge reflections on water
-                float waterFresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
-
-                // Specular — water is very reflective
-                vec3 halfVec = normalize(lightDir + viewDir);
-                float waterSpec = pow(max(dot(normal, halfVec), 0.0), 60.0);
-                vec3 lightDir2 = normalize(vec3(-0.5, 0.8, 0.3));
-                float waterSpec2 = pow(max(dot(normal, normalize(lightDir2 + viewDir)), 0.0), 40.0);
-
-                // Water diffuse
-                float waterDiffuse = max(dot(normal, lightDir) * 0.5 + 0.5, 0.0);
-
-                // Gold water palette
-                vec3 waterColor = mix(vec3(0.12, 0.09, 0.03), vec3(0.35, 0.28, 0.08), waterDiffuse);
-                waterColor += vec3(0.85, 0.70, 0.25) * caustic * 0.4;
-                waterColor += vec3(0.85, 0.70, 0.25) * ripple * 0.2;
-                waterColor += vec3(0.7, 0.55, 0.15) * waterFresnel * 0.8;
-                waterColor += vec3(1.0, 0.95, 0.8) * waterSpec * 0.7;
-                waterColor += vec3(0.9, 0.85, 0.7) * waterSpec2 * 0.4;
-
-                // --- Velvet look (animated) ---
-                float rim = 1.0 - max(dot(viewDir, normal), 0.0);
-
-                // Animated shimmer: rim light shifts and pulses
-                float shimmer = sin(objN.x * 12.0 + uTime * 1.2) * sin(objN.y * 10.0 - uTime * 0.8);
-                float shimmer2 = sin(objN.z * 14.0 + uTime * 0.6) * sin((objN.x + objN.z) * 8.0 + uTime * 1.0);
-                float shimmerAmount = (shimmer * 0.5 + shimmer2 * 0.5) * 0.15 + 0.85; // oscillates 0.7-1.0
-
-                float velvetRim = pow(rim, 2.5) * 1.3 * shimmerAmount;
-
-                // Breathing diffuse — light direction subtly shifts
-                vec3 breathLight = lightDir + vec3(
-                    sin(uTime * 0.4) * 0.15,
-                    cos(uTime * 0.3) * 0.1,
-                    sin(uTime * 0.5) * 0.12
-                );
-                breathLight = normalize(breathLight);
-
-                float wrapDiffuse = max(dot(normal, breathLight) * 0.5 + 0.5, 0.0);
-                wrapDiffuse = pow(wrapDiffuse, 1.5);
-
-                // Fiber-like micro detail via high-freq noise
-                float fiber = sin(objN.x * 40.0 + objN.y * 30.0 + uTime * 0.4) *
-                              sin(objN.y * 35.0 + objN.z * 25.0 - uTime * 0.3);
-                float fiberDetail = 0.93 + 0.07 * fiber;
-
-                vec3 velvetBase = vec3(0.18, 0.14, 0.06) * (0.4 + 0.6 * wrapDiffuse) * fiberDetail;
-                vec3 velvetRimColor = vec3(0.8, 0.65, 0.2) * velvetRim;
-
-                float backLight = max(dot(-breathLight, normal) * 0.3 + 0.3, 0.0);
-                vec3 subsurface = vec3(0.4, 0.3, 0.1) * backLight * 0.35;
-
-                vec3 velvetColor = velvetBase + velvetRimColor + subsurface;
-
-                // --- Transitions with sweep wave ---
-                // Use object-space Y as sweep axis (bottom to top)
-                float sweepPos = objN.y * 0.5 + 0.5; // 0 at bottom, 1 at top
-
-                // Transition 1: water → hybrid (sweep wave at progress 0.28-0.40)
-                float trans1 = smoothstep(0.28, 0.40, uProgress);
-                float wave1 = sweepPos + sin(objN.x * 6.0 + objN.z * 4.0) * 0.08;
-                float sweep1 = smoothstep(trans1 - 0.15, trans1 + 0.15, wave1);
-
-                float splitPos = smoothstep(-0.05, 0.05, vWorldNormal.x);
-                vec3 hybridColor = mix(waterColor, velvetColor, splitPos);
-
-                vec3 phase12 = mix(hybridColor, waterColor, sweep1);
-
-                // Transition 2: hybrid → full velvet (sweep wave at progress 0.60-0.80)
-                float trans2 = smoothstep(0.60, 0.80, uProgress);
-                float wave2 = sweepPos + sin(objN.x * 5.0 - objN.z * 7.0) * 0.1;
-                float sweep2 = smoothstep(trans2 - 0.15, trans2 + 0.15, wave2);
-
-                vec3 finalColor;
-
-                if (uProgress < 0.28) {
-                    finalColor = waterColor;
-                } else if (uProgress < 0.60) {
-                    finalColor = phase12;
-                } else {
-                    finalColor = mix(velvetColor, phase12, sweep2);
-                }
-
-                // Ambient
-                finalColor += vec3(0.03, 0.02, 0.01);
-
-                // Subtle glow pulse at transition boundaries
-                float transGlow = 0.0;
-                if (uProgress > 0.25 && uProgress < 0.45) {
-                    float edge1 = 1.0 - abs(sweep1 - 0.5) * 2.0;
-                    transGlow = edge1 * smoothstep(0.25, 0.30, uProgress) * smoothstep(0.45, 0.40, uProgress);
-                }
-                if (uProgress > 0.55 && uProgress < 0.85) {
-                    float edge2 = 1.0 - abs(sweep2 - 0.5) * 2.0;
-                    transGlow += edge2 * smoothstep(0.55, 0.60, uProgress) * smoothstep(0.85, 0.80, uProgress);
-                }
-                finalColor += vec3(0.5, 0.4, 0.15) * transGlow * 0.25;
-
-                gl_FragColor = vec4(finalColor, 1.0);
-            }
-        `;
-
-        // --- Setup ---
-        const canvas = document.getElementById('sphere-canvas');
-        const renderer = new THREE.WebGLRenderer({
-            canvas,
-            antialias: true,
-            alpha: true
-        });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x050505, 1);
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-        camera.position.z = 4;
-
-        // Sphere — lower resolution on mobile for performance
-        const isMobile = window.innerWidth < 768;
-        const segments = isMobile ? 64 : 96;
-        const geometry = new THREE.SphereGeometry(1.2, segments, segments);
-        const material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms: {
-                uProgress: { value: 0.0 },
-                uTime: { value: 0.0 },
-                uLightDir: { value: new THREE.Vector3(1, 1, 1).normalize() }
-            }
-        });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
-
-        // WebGL context loss recovery
-        canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); });
-        canvas.addEventListener('webglcontextrestored', () => { onResize(); });
-
-        // State
-        let targetRotationY = 0;
-
-        // --- Resize ---
-        function onResize() {
-            const container = document.getElementById('sphere-pin');
-            if (!container) return;
-            const w = container.clientWidth;
-            const h = container.clientHeight;
-            renderer.setSize(w, h);
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-        }
-        window.addEventListener('resize', onResize);
-        onResize();
-
-        // --- Labels & dots ---
-        const labelAI = document.getElementById('label-ai');
-        const labelHybrid = document.getElementById('label-hybrid');
-        const labelCGI = document.getElementById('label-cgi');
-        const dots = [
-            document.getElementById('dot-0'),
-            document.getElementById('dot-1'),
-            document.getElementById('dot-2')
-        ];
-
-        function updateLabels(p) {
-            // Phase boundaries (match shader sweep: 0-0.28 water, 0.28-0.60 hybrid, 0.60-1 velvet)
-            const isAI = p < 0.28;
-            const isHybrid = p >= 0.28 && p < 0.60;
-            const isCGI = p >= 0.60;
-
-            labelAI.classList.toggle('active', isAI);
-            labelHybrid.classList.toggle('active', isHybrid);
-            labelCGI.classList.toggle('active', isCGI);
-
-            dots[0].classList.toggle('active', isAI);
-            dots[1].classList.toggle('active', isHybrid);
-            dots[2].classList.toggle('active', isCGI);
-        }
-
-        // --- GSAP ScrollTrigger ---
-        gsap.registerPlugin(ScrollTrigger);
-
-        ScrollTrigger.create({
-            trigger: '#sphere-scroll',
-            start: 'top top',
-            end: 'bottom bottom',
-            pin: '#sphere-pin',
-            scrub: 0.5,
-            onUpdate: (self) => {
-                const p = self.progress;
-                targetRotationY = p * Math.PI * 2;
-                material.uniforms.uProgress.value = p;
-                updateLabels(p);
-            }
-        });
-
-        // --- Render loop ---
-        const clock = new THREE.Clock();
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const elapsed = clock.getElapsedTime();
-            material.uniforms.uTime.value = elapsed;
-
-            // Smooth rotation
-            sphere.rotation.y += (targetRotationY - sphere.rotation.y) * 0.1;
-
-            // Subtle idle float
-            const floatX = Math.sin(Date.now() * 0.0003) * 0.05;
-            sphere.rotation.x = floatX;
-
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Initial label state
-        updateLabels(0);
-    </script>
-
-</body></html>
+</body>
+</html>
