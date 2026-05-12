@@ -1009,18 +1009,33 @@
         function getScrollDistance() {
             return hscrollTrack.scrollWidth - window.innerWidth;
         }
-        gsap.to(hscrollTrack, {
-            x: () => -getScrollDistance(),
-            ease: 'none',
+        function getRevealDistance() {
+            return Math.round(window.innerHeight * 0.7);
+        }
+        gsap.set(hscrollTrack, { x: () => window.innerWidth, opacity: 0 });
+        const workTL = gsap.timeline({
             scrollTrigger: {
                 trigger: '.hscroll-section',
                 start: 'top top',
-                end: () => '+=' + getScrollDistance(),
+                end: () => '+=' + (getRevealDistance() + getScrollDistance()),
                 scrub: 1,
                 pin: true,
                 anticipatePin: 1,
                 invalidateOnRefresh: true
             }
+        });
+        // Phase 1: reel rolls in from the right, fades up
+        workTL.to(hscrollTrack, {
+            x: 0,
+            opacity: 1,
+            ease: 'power2.out',
+            duration: getRevealDistance()
+        });
+        // Phase 2: horizontal scroll through the slides
+        workTL.to(hscrollTrack, {
+            x: () => -getScrollDistance(),
+            ease: 'none',
+            duration: getScrollDistance()
         });
     } else if (hscrollWrap) {
         hscrollWrap.style.overflowX = 'auto';
