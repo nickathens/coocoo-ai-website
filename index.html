@@ -410,7 +410,7 @@
 
     <!-- ========== WORK — HORIZONTAL SCROLL ========== -->
     <section class="hscroll-section content-layer bg-[#050505] border-t border-white/5">
-        <div class="max-w-7xl mx-auto px-6 pt-24 md:pt-32 pb-8">
+        <div class="hscroll-heading max-w-7xl mx-auto px-6 pt-24 md:pt-32 pb-8">
             <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Work</h2>
             <p class="text-zinc-500 max-w-md text-sm leading-relaxed">Full projects and productions.</p>
         </div>
@@ -1005,6 +1005,7 @@
     // ——— HORIZONTAL SCROLL (desktop only) ———
     const hscrollTrack = document.querySelector('.hscroll-track');
     const hscrollWrap = document.querySelector('.hscroll-wrap');
+    const hscrollHeading = document.querySelector('.hscroll-heading');
     if (hscrollTrack && hscrollWrap && window.innerWidth >= 768) {
         function getScrollDistance() {
             return hscrollTrack.scrollWidth - window.innerWidth;
@@ -1013,6 +1014,9 @@
             return Math.round(window.innerHeight * 0.7);
         }
         gsap.set(hscrollTrack, { x: () => window.innerWidth, opacity: 0 });
+        if (hscrollHeading) {
+            gsap.set(hscrollHeading, { opacity: 0, y: 40 });
+        }
         const workTL = gsap.timeline({
             scrollTrigger: {
                 trigger: '.hscroll-section',
@@ -1024,13 +1028,21 @@
                 invalidateOnRefresh: true
             }
         });
-        // Phase 1: reel rolls in from the right, fades up
+        // Phase 1: heading + reel reveal together
         workTL.to(hscrollTrack, {
             x: 0,
             opacity: 1,
             ease: 'power2.out',
             duration: getRevealDistance()
-        });
+        }, 0);
+        if (hscrollHeading) {
+            workTL.to(hscrollHeading, {
+                opacity: 1,
+                y: 0,
+                ease: 'power2.out',
+                duration: getRevealDistance()
+            }, 0);
+        }
         // Phase 2: horizontal scroll through the slides
         workTL.to(hscrollTrack, {
             x: () => -getScrollDistance(),
