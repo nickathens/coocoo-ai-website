@@ -153,6 +153,100 @@
             opacity: 0.85;
         }
 
+        /* O scene portals — one full-letter circle per O, gold-ringed, positioned by JS */
+        .o-scene {
+            position: absolute;
+            border-radius: 50%;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 0 50px rgba(201,168,76,0.25);
+            will-change: transform, opacity;
+        }
+        /* Ring outline carries the same animated TV static as the letters */
+        .o-scene::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-image: var(--tv-static);
+            background-size: cover;
+            background-position: center;
+            image-rendering: pixelated;
+            opacity: 0.85;
+            -webkit-mask: radial-gradient(closest-side, transparent calc(100% - var(--ringw, 4px)), #000 calc(100% - var(--ringw, 4px) + 1px));
+            mask: radial-gradient(closest-side, transparent calc(100% - var(--ringw, 4px)), #000 calc(100% - var(--ringw, 4px) + 1px));
+            pointer-events: none;
+            z-index: 2;
+        }
+        /* The circle IS the O now — hide the glyph, keep its layout box */
+        .hero-o {
+            margin: 0 0.06em;
+            color: transparent !important;
+            -webkit-text-fill-color: transparent !important;
+            background-image: none !important;
+        }
+        /* Bigger CooCoo */
+        .hero-line-2 {
+            font-size: clamp(4rem, 19vw, 19rem);
+            line-height: 1;
+        }
+        /* Smaller C's — the O circles keep their full size */
+        .hero-c {
+            font-size: 0.62em;
+            vertical-align: middle;
+            margin: 0 0.16em;
+        }
+        @media (max-width: 640px) {
+            .hero-line-2 { font-size: 13.5vw; }
+            .hero-c { margin: 0 0.1em; }
+        }
+        .o-scene.scene-ready { opacity: 1; }
+        .o-scene video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Stickers — draggable, throwable, fall-off-able */
+        .sticker {
+            position: absolute;
+            z-index: 30;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 10px 16px;
+            border-radius: 2px;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            white-space: nowrap;
+            transform: rotate(var(--r, 0deg));
+            box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+            will-change: transform;
+        }
+        .sticker:active { cursor: grabbing; }
+        .sticker .mini {
+            display: block;
+            font-size: 8px;
+            letter-spacing: 0.2em;
+            opacity: 0.6;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .st-gold { background: #C9A84C; color: #0a0a0a; }
+        .st-ink { background: #18181b; color: #F5E6B8; border: 1px solid rgba(201,168,76,0.5); }
+        .st-bone { background: #ece6d6; color: #0a0a0a; }
+        .st-line { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.45); backdrop-filter: blur(4px); }
+        @media (hover: none), (pointer: coarse) {
+            .sticker { cursor: default; }
+        }
+        @media (max-width: 767px) {
+            .sticker { font-size: 9px; padding: 7px 11px; }
+        }
+
         /* Focus */
         *:focus-visible { outline: 2px solid #C9A84C; outline-offset: 2px; }
         *:focus:not(:focus-visible) { outline: none; }
@@ -169,103 +263,229 @@
             pointer-events: none !important;
         }
 
-        /* Horizontal scroll */
-        .hscroll-track { will-change: transform; }
-        .hscroll-section { transform-origin: center center; }
-
-        /* Process morph section */
-        .process-morph-pin {
-            z-index: 10;
-            background: #000000;
+        /* Work disc yard — circular thumbnail coins, physics floor */
+        @media (max-width: 767px) {
+            #cube-yard { height: 38vh !important; min-height: 250px !important; }
         }
-        .process-canvas-wrap {
+        .cube-wrap {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            cursor: grab;
+            will-change: left, top, transform;
+            z-index: 5;
+            touch-action: pan-y;
         }
-        .process-canvas-wrap canvas {
-            width: 100%;
-            height: 100%;
-        }
-        .process-content-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-        }
-        .process-cut-line {
-            position: absolute;
-            top: -1px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.6) 50%, transparent 100%);
-            transform: scaleX(0);
-            transform-origin: center;
-            z-index: 20;
-        }
-        .process-cut-glow {
-            position: absolute;
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.08), transparent);
-            pointer-events: none;
-            z-index: 19;
-        }
-        .process-text-stack {
+        .cube-wrap:active { cursor: grabbing; }
+        .cube-scaler { width: 100%; height: 100%; will-change: transform; }
+        .cube-wrap.featured-wrap { z-index: 8; }
+        .disc {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background-size: cover; background-position: center;
+            background-color: #18181b;
+            border: 2px solid rgba(201,168,76,0.45);
+            box-shadow: 0 0 22px rgba(201,168,76,0.12), inset 0 0 30px rgba(0,0,0,0.45);
             position: relative;
-            min-height: 220px;
             overflow: hidden;
         }
-        .process-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000000;
-            padding-bottom: 2rem;
+        .disc.featured {
+            border-width: 3px;
+            border-color: #C9A84C;
+            box-shadow: 0 0 34px rgba(201,168,76,0.28), inset 0 0 30px rgba(0,0,0,0.4);
         }
-        .process-slide::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: #000000;
+        .disc .take-tag {
+            position: absolute; bottom: 11%; left: 50%;
+            transform: translateX(-50%);
+            padding: 2px 7px;
+            background: rgba(0,0,0,0.65);
+            color: #C9A84C;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: calc(var(--s) * 0.1); font-weight: 600;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            white-space: nowrap;
+            backdrop-filter: blur(4px);
         }
-        .process-slide:first-child {
-            opacity: 1 !important;
+        .disc .latest-tag {
+            position: absolute; top: 11%; left: 50%;
+            transform: translateX(-50%);
+            padding: 2px 7px;
+            background: #C9A84C; color: #000;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: calc(var(--s) * 0.09); font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            white-space: nowrap;
         }
-        .process-slide:first-child.gsap-controlled {
-            opacity: unset !important;
+        #cube-yard .yard-floor {
+            position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(201,168,76,0.35), transparent);
         }
+
         .process-step-number {
             font-family: 'Space Grotesk', sans-serif;
             font-variant-numeric: tabular-nums;
         }
 
-        /* Mobile overrides for process section */
+        /* COO COO — floating gold letters, no banner */
+        .coo-strip {
+            width: 100%;
+            overflow: hidden;
+            padding: 2.25rem 0;
+        }
+        .coo-strip .coo-track {
+            display: flex;
+            gap: 3rem;
+            width: max-content;
+            animation: marquee 55s linear infinite reverse;
+        }
+        .coo-strip span {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.16em;
+            color: #C9A84C;
+            white-space: nowrap;
+            flex-shrink: 0;
+            animation: cooBob 4.5s ease-in-out infinite;
+        }
+        .coo-strip span:nth-child(4n)   { animation-delay: -0.6s; }
+        .coo-strip span:nth-child(4n+1) { animation-delay: -1.8s; }
+        .coo-strip span:nth-child(4n+2) { animation-delay: -3.0s; }
+        .coo-strip span:nth-child(4n+3) { animation-delay: -2.3s; }
+        @keyframes cooBob {
+            0%, 100% { transform: translateY(0) rotate(-4deg); }
+            50%      { transform: translateY(-12px) rotate(4deg); }
+        }
+
+        /* Door section — every brief is a door */
+        .door-pin { background: #050505; }
+        .door-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            height: 58vh;
+            aspect-ratio: 0.58;
+            border-radius: 6px 6px 2px 2px;
+            overflow: hidden;
+            box-shadow: 0 0 80px rgba(201,168,76,0.25), 0 30px 80px rgba(0,0,0,0.6);
+            border: 1px solid rgba(201,168,76,0.25);
+        }
+        .door-frame video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: cover;
+        }
+        .door-bloom {
+            position: absolute;
+            inset: 0;
+            background: #fffdf5;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
         @media (max-width: 767px) {
-            .process-morph-pin {
-                background: #000000 !important;
-            }
-            .process-text-stack {
-                min-height: 180px;
-            }
-            .process-slide h3 {
-                font-size: 1.5rem;
-            }
+            .door-frame { height: 48vh; }
+        }
+
+        /* Taped photos — polaroid on dark */
+        .taped {
+            position: relative;
+            background: #ece6d6;
+            padding: 8px 8px 10px;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+            transform: rotate(var(--tilt, 0deg));
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .taped:hover { transform: rotate(0deg) scale(1.02); }
+        .taped::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(var(--tape-r, -3deg));
+            width: 84px;
+            height: 24px;
+            background: rgba(245,230,184,0.6);
+            border-left: 1px dashed rgba(0,0,0,0.12);
+            border-right: 1px dashed rgba(0,0,0,0.12);
+            z-index: 2;
+        }
+        .taped img { display: block; border-radius: 1px; }
+        .taped .tag {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #2a2620;
+            text-align: center;
+            padding-top: 7px;
+        }
+
+        /* Process tickets */
+        .ticket {
+            position: relative;
+            background: #0c0c0e;
+            border: 1px dashed rgba(201,168,76,0.35);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        .ticket::before, .ticket::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #050505;
+            transform: translateY(-50%);
+        }
+        .ticket::before { left: -9px; border-right: 1px dashed rgba(201,168,76,0.35); }
+        .ticket::after { right: -9px; border-left: 1px dashed rgba(201,168,76,0.35); }
+
+        /* Machine pills */
+        .mpill {
+            display: inline-block;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #d4d4d8;
+            background: rgba(24,24,27,0.6);
+            white-space: nowrap;
+            transition: border-color 0.3s, color 0.3s, transform 0.3s;
+        }
+        .mpill:hover { border-color: rgba(201,168,76,0.6); color: #F5E6B8; transform: translateY(-2px); }
+        .mpill.gold { background: #C9A84C; color: #0a0a0a; border-color: #C9A84C; font-weight: 600; }
+        .mpill.gold:hover { color: #0a0a0a; }
+        .mpill.phys {
+            cursor: grab;
+            transition: border-color 0.3s, color 0.3s;
+            will-change: transform;
+            user-select: none;
+            touch-action: none;
+            position: relative;
+        }
+        .mpill.phys:active { cursor: grabbing; }
+        .pill-hint {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(201,168,76,0.55);
+            margin-left: 14px;
+            vertical-align: middle;
+            white-space: nowrap;
         }
 
         /* Reduced motion */
@@ -323,11 +543,33 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40"></div>
             </div>
 
+            <!-- Four scenes, one per O — fade out as the reel bursts through on scroll -->
+            <div class="o-scene" data-scene="0" style="z-index: 5;">
+                <video autoplay loop muted playsinline webkit-playsinline disableRemotePlayback preload="auto" src="oclips/tiger.mp4"></video>
+            </div>
+            <div class="o-scene" data-scene="1" style="z-index: 5;">
+                <video autoplay loop muted playsinline webkit-playsinline disableRemotePlayback preload="auto" src="oclips/temple.mp4"></video>
+            </div>
+            <div class="o-scene" data-scene="2" style="z-index: 5;">
+                <video autoplay loop muted playsinline webkit-playsinline disableRemotePlayback preload="auto" src="oclips/monkey.mp4"></video>
+            </div>
+            <div class="o-scene" data-scene="3" style="z-index: 5;">
+                <video autoplay loop muted playsinline webkit-playsinline disableRemotePlayback preload="auto" src="oclips/fire.mp4"></video>
+            </div>
+
+            <!-- Stickers — drag them, throw them, watch them fall -->
+            <div class="hero-stickers absolute inset-0 z-30 pointer-events-none">
+                <div class="sticker st-gold pointer-events-auto" style="top: 18%; left: 6%; --r: -7deg;">Weird &#10022; Wonderful &#10022; Warped<span class="mini">drag me</span></div>
+                <div class="sticker st-line pointer-events-auto" style="top: 26%; right: 8%; --r: 5deg;">AI Film Studio</div>
+                <div class="sticker st-ink pointer-events-auto" style="bottom: 30%; left: 9%; --r: 4deg;">Athens &#9992; Everywhere</div>
+                <div class="sticker st-bone pointer-events-auto" style="bottom: 24%; right: 11%; --r: -4deg;">100% Generated, 0% Captured</div>
+            </div>
+
             <div class="hero-text absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
                 <h1 class="text-6xl md:text-9xl font-medium text-white tracking-tighter leading-none text-center">
                     <span class="block hero-line-1">We are</span>
                     <span class="block hero-line-2 coocoo-tv-wrap mt-2">
-                        <span class="letter-bounce d-0 drop-shadow-2xl">C</span><span class="letter-bounce d-1 drop-shadow-2xl hero-o" data-o-idx="0">o</span><span class="letter-bounce d-2 drop-shadow-2xl hero-o" data-o-idx="1">o</span><span class="letter-bounce d-3 drop-shadow-2xl">C</span><span class="letter-bounce d-4 drop-shadow-2xl hero-o" data-o-idx="2">o</span><span class="letter-bounce d-5 drop-shadow-2xl hero-o" data-o-idx="3">o</span>
+                        <span class="letter-bounce d-0 drop-shadow-2xl hero-c">C</span><span class="letter-bounce d-1 drop-shadow-2xl hero-o" data-o-idx="0">o</span><span class="letter-bounce d-2 drop-shadow-2xl hero-o" data-o-idx="1">o</span><span class="letter-bounce d-3 drop-shadow-2xl hero-c">C</span><span class="letter-bounce d-4 drop-shadow-2xl hero-o" data-o-idx="2">o</span><span class="letter-bounce d-5 drop-shadow-2xl hero-o" data-o-idx="3">o</span>
                     </span>
                 </h1>
             </div>
@@ -372,9 +614,9 @@
         <div class="max-w-7xl mx-auto px-6">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                 <div>
-                    <h2 class="shots-title text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Selected Shots</h2>
+                    <h2 class="shots-title text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Selected Hallucinations</h2>
                     <p class="text-zinc-500 max-w-md text-sm leading-relaxed">
-                        A curation of our finest hallucinations. 100% generated, 0% captured.
+                        A curation of our finest. 100% generated, 0% captured.
                     </p>
                 </div>
             </div>
@@ -383,24 +625,54 @@
                     <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
                         <source src="https://pub-fdae30bcb29e4844a63f306d24990529.r2.dev/lyg.mp4" type="video/mp4">
                     </video>
+                    <span class="hall-chip absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-gold text-[10px] font-semibold tracking-widest uppercase z-10" style="font-family:'Space Grotesk',sans-serif">Hybrid</span>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
-                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Hybrid</h3>
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Live action, generated twin</h3>
                     </div>
                 </div>
                 <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="0.95">
                     <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
                         <source src="product-shot-1.mp4" type="video/mp4">
                     </video>
+                    <span class="hall-chip absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-gold text-[10px] font-semibold tracking-widest uppercase z-10" style="font-family:'Space Grotesk',sans-serif">Product</span>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
-                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Product Shot</h3>
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">No studio, no lights, no product</h3>
                     </div>
                 </div>
                 <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="1.05">
                     <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
                         <source src="https://pub-fdae30bcb29e4844a63f306d24990529.r2.dev/lyg2.mp4" type="video/mp4">
                     </video>
+                    <span class="hall-chip absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-gold text-[10px] font-semibold tracking-widest uppercase z-10" style="font-family:'Space Grotesk',sans-serif">Style Transfer</span>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
-                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Style Transfer</h3>
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Real footage, repainted</h3>
+                    </div>
+                </div>
+                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="1.05">
+                    <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
+                        <source src="oclips/hall-character.mp4" type="video/mp4">
+                    </video>
+                    <span class="hall-chip absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-gold text-[10px] font-semibold tracking-widest uppercase z-10" style="font-family:'Space Grotesk',sans-serif">Character</span>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">One face, every frame, any world</h3>
+                    </div>
+                </div>
+                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="0.95">
+                    <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
+                        <source src="oclips/hall-sets.mp4" type="video/mp4">
+                    </video>
+                    <span class="hall-chip absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-gold text-[10px] font-semibold tracking-widest uppercase z-10" style="font-family:'Space Grotesk',sans-serif">Impossible Sets</span>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Locations no scout will ever find</h3>
+                    </div>
+                </div>
+                <div class="work-card group relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden" data-speed="1.05">
+                    <video autoplay loop muted playsinline webkit-playsinline class="card-media w-full h-full object-cover opacity-80">
+                        <source src="oclips/hall-mood.mp4" type="video/mp4">
+                    </video>
+                    <span class="hall-chip absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-gold text-[10px] font-semibold tracking-widest uppercase z-10" style="font-family:'Space Grotesk',sans-serif">Mood</span>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 md:p-8">
+                        <h3 class="text-lg font-medium text-white tracking-tight translate-y-4 group-hover:translate-y-0 transition-transform duration-300">The exact feeling, dialed in</h3>
                     </div>
                 </div>
             </div>
@@ -408,137 +680,52 @@
     </section>
 
 
-    <!-- ========== WORK — HORIZONTAL SCROLL ========== -->
-    <section class="hscroll-section content-layer bg-[#050505] border-t border-white/5">
-        <div class="hscroll-heading max-w-7xl mx-auto px-6 pt-24 md:pt-32 pb-8">
-            <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Work</h2>
-            <p class="text-zinc-500 max-w-md text-sm leading-relaxed">Full projects and productions.</p>
-        </div>
-        <div class="hscroll-wrap relative overflow-hidden">
-            <div class="hscroll-track flex gap-4 pl-6 py-8" style="width: max-content;">
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('rZFnZJ9jGR8')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-rZFnZJ9jGR8.jpg" alt="COSMOTE MagentaONE Business" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
+    <!-- ========== LATEST FILM — TAKE 02 ========== -->
+    <section class="latest-film-section content-layer bg-[#050505] py-24 md:py-32 border-t border-white/5 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                <div class="film-copy">
+                    <span class="inline-block px-3 py-1.5 bg-gold text-black text-[10px] font-bold tracking-widest uppercase mb-6" style="font-family:'Space Grotesk',sans-serif">Latest Film</span>
+                    <h2 class="text-6xl md:text-8xl font-medium text-white tracking-tighter leading-none mb-6" style="font-family:'Space Grotesk',sans-serif">TAKE 02</h2>
+                    <p class="text-zinc-400 text-base md:text-lg leading-relaxed max-w-md mb-8">
+                        A love story that never happened, between two people who don't exist. Streetlights we invented, rain we never waited for. The newest film out of the studio — fresh from the diffusion oven.
+                    </p>
+                    <button onclick="openWorkVideo('IfYaUFWIzlg')" class="btn-shimmer hover:bg-zinc-200 transition-all inline-flex text-sm font-semibold text-black bg-white rounded-full py-3 px-8 gap-2 items-center cursor-pointer active:scale-95 duration-200">
+                        <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3 text-white ml-0.5"><path d="M8 5v14l11-7z"/></svg>
                         </div>
+                        Play the film
+                    </button>
+                </div>
+                <div class="film-stills relative h-[420px] md:h-[480px] cursor-pointer" onclick="openWorkVideo('IfYaUFWIzlg')">
+                    <div class="taped absolute top-0 left-[4%] w-[64%] z-10" style="--tilt: -4deg; --tape-r: -5deg;">
+                        <img src="images/take02-maxres1.jpg" alt="TAKE 02 still — a face lit by the screen" loading="lazy">
+                        <div class="tag">int. cinema — night</div>
+                    </div>
+                    <div class="taped absolute top-[26%] right-0 w-[58%] z-20" style="--tilt: 3deg; --tape-r: 4deg;">
+                        <img src="images/take02-maxresdefault.jpg" alt="TAKE 02 still — two faces, close" loading="lazy">
+                        <div class="tag">the almost-kiss</div>
+                    </div>
+                    <div class="taped absolute bottom-0 left-[12%] w-[56%] z-30" style="--tilt: -2deg; --tape-r: -3deg;">
+                        <img src="images/take02-maxres3.jpg" alt="TAKE 02 still — a car in the night rain" loading="lazy">
+                        <div class="tag">ext. parking lot — rain</div>
                     </div>
                 </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('IfYaUFWIzlg')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/IfYaUFWIzlg/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('g8tvgvXKEA8')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/g8tvgvXKEA8/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('iWtr96jxALU')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/iWtr96jxALU/maxresdefault.jpg" alt="Opekempe" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('Gb0MAEP_RfE')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/Gb0MAEP_RfE/maxresdefault.jpg" alt="EVIOL" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('_QGrXS9tjNs')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/_QGrXS9tjNs/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('6k2RtxQQYy8')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/6k2RtxQQYy8/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('hyQth5k_43k')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-hyQth5k_43k.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('c_tPZP08MMw')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="thumb-c_tPZP08MMw.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('o5bqEXbkxmA')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="images/thumb-o5bqEXbkxmA.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('qH8Hcp03kq0')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/qH8Hcp03kq0/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="work-slide flex-shrink-0 cursor-pointer group" onclick="openWorkVideo('jOW0cvbJ1zU')">
-                    <div class="relative w-[360px] md:w-[480px] aspect-video rounded-2xl overflow-hidden bg-zinc-900">
-                        <img src="https://img.youtube.com/vi/jOW0cvbJ1zU/maxresdefault.jpg" alt="Project" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:bg-white/20 scale-90 group-hover:scale-100 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white ml-1"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex-shrink-0 w-6"></div>
             </div>
         </div>
+    </section>
+
+
+    <!-- ========== WORK — CUBE YARD ========== -->
+    <section class="content-layer bg-[#050505] border-t border-white/5 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 pt-24 md:pt-32 pb-2 relative z-10 pointer-events-none">
+            <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-4">Work</h2>
+            <p class="text-zinc-500 max-w-md text-sm leading-relaxed">Full projects and productions.
+                <span class="text-gold/80 hidden md:inline">Throw them around. Click one to watch.</span>
+                <span class="text-gold/80 md:hidden">Tap one to watch.</span>
+            </p>
+        </div>
+        <div id="cube-yard" class="relative w-full" style="height: 50vh; min-height: 340px;"></div>
     </section>
 
 
@@ -564,59 +751,95 @@
                 <span class="text-lg font-light text-gold tracking-tight flex-shrink-0">/</span>
             </div>
         </div>
+        <div class="coo-strip mt-8">
+            <div class="coo-track">
+<span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span><span>coo</span>
+            </div>
+        </div>
     </section>
 
 
-    <!-- ========== HOW WE WORK ========== -->
-    <section class="process-morph-section content-layer" id="process" style="height: 300vh;">
-        <div class="process-morph-pin relative overflow-hidden" style="height: 100vh;">
-            <div class="process-cut-line"></div>
-            <div class="process-cut-glow"></div>
-
-            <!-- Particle canvas — full background on all screens -->
-            <div class="process-canvas-wrap">
-                <canvas id="process-particles"></canvas>
+    <!-- ========== HOW WE WORK — THE DOOR ========== -->
+    <section class="door-section content-layer" id="process" style="height: 300vh;">
+        <div class="door-pin relative overflow-hidden" style="height: 100vh;">
+            <div class="door-title-wrap absolute inset-x-0 top-[12%] text-center z-10 px-6">
+                <h2 class="text-4xl md:text-6xl font-medium text-white tracking-tighter mb-3">Every brief is a door.</h2>
+                <p class="text-zinc-500 text-sm md:text-base">We walk through first. Keep scrolling.</p>
             </div>
+            <div class="door-frame">
+                <video id="door-video" muted playsinline webkit-playsinline preload="auto" poster="images/door-poster.jpg">
+                    <source src="oclips/doorwalk.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="door-bloom"></div>
+        </div>
+    </section>
 
-            <!-- Text overlay -->
-            <div class="process-content-overlay">
-                <div class="max-w-7xl mx-auto px-6 w-full">
-                    <div class="flex flex-col max-w-md lg:max-w-lg">
-                        <h2 class="process-main-title text-3xl md:text-5xl font-medium text-white tracking-tighter mb-3">How We Work</h2>
-                        <p class="text-zinc-500 max-w-lg text-sm leading-relaxed mb-12">
-                            From brief to final delivery. We plug into your production at any stage.
-                        </p>
 
-                        <div class="process-text-stack">
-                            <div class="process-slide" data-step="0">
-                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">01</div>
-                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Brief</h3>
-                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">You share the vision — storyboards, references, scripts, or just a wild idea. We figure out what AI can do with it.</p>
-                            </div>
-                            <div class="process-slide opacity-0" data-step="1">
-                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">02</div>
-                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Generate</h3>
-                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">We produce initial concepts — locations, wardrobe explorations, camera tests — fast enough to iterate in real time.</p>
-                            </div>
-                            <div class="process-slide opacity-0" data-step="2">
-                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">03</div>
-                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Refine</h3>
-                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">Rounds of iteration on style, composition, and detail. We dial in until it matches the director's eye exactly.</p>
-                            </div>
-                            <div class="process-slide opacity-0" data-step="3">
-                                <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium">04</div>
-                                <h3 class="text-2xl md:text-3xl font-medium text-white mb-3 tracking-tight">Deliver</h3>
-                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">Final assets exported production-ready — upscaled, color-graded, and formatted for your pipeline.</p>
-                            </div>
-                        </div>
+    <!-- ========== HOW WE WORK — THE STEPS ========== -->
+    <section class="process-tickets content-layer bg-[#050505] py-24 md:py-32 relative" style="z-index: 30;">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-3">How We Work</h2>
+            <p class="text-zinc-500 max-w-lg text-sm leading-relaxed mb-14">
+                From storyboard to final delivery, we plug into your production at any stage.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="ticket">
+                    <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium" style="font-family:'Space Grotesk',sans-serif">01</div>
+                    <h3 class="text-xl md:text-2xl font-medium text-white mb-3 tracking-tight">Brief</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">You share the vision — storyboards, references, scripts, or just a wild idea. We figure out what AI can do with it.</p>
+                </div>
+                <div class="ticket">
+                    <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium" style="font-family:'Space Grotesk',sans-serif">02</div>
+                    <h3 class="text-xl md:text-2xl font-medium text-white mb-3 tracking-tight">Generate</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">We produce initial concepts — locations, wardrobe explorations, camera tests — fast enough to iterate in real time.</p>
+                </div>
+                <div class="ticket">
+                    <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium" style="font-family:'Space Grotesk',sans-serif">03</div>
+                    <h3 class="text-xl md:text-2xl font-medium text-white mb-3 tracking-tight">Refine</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Rounds of iteration on style, composition, and detail. We dial in until it matches the director's eye exactly.</p>
+                </div>
+                <div class="ticket">
+                    <div class="process-step-number text-gold/80 text-sm mb-3 tracking-wider font-medium" style="font-family:'Space Grotesk',sans-serif">04</div>
+                    <h3 class="text-xl md:text-2xl font-medium text-white mb-3 tracking-tight">Deliver</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Final assets exported production-ready — upscaled, color-graded, and formatted for your pipeline.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                        <!-- Progress bar -->
-                        <div class="process-progress-bar flex gap-3 mt-10">
-                            <div class="process-dot w-8 h-1 rounded-full bg-gold transition-colors duration-300"></div>
-                            <div class="process-dot w-8 h-1 rounded-full bg-zinc-700 transition-colors duration-300"></div>
-                            <div class="process-dot w-8 h-1 rounded-full bg-zinc-700 transition-colors duration-300"></div>
-                            <div class="process-dot w-8 h-1 rounded-full bg-zinc-700 transition-colors duration-300"></div>
-                        </div>
+
+    <!-- ========== WHAT THE MACHINES CAN DO ========== -->
+    <section class="machines-section content-layer py-24 md:py-32 border-t border-white/5 bg-[#050505] relative" style="z-index: 30;">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-14">What the machines can do<span class="pill-hint" id="pill-hint" style="display:none">go on, throw one</span></h2>
+            <div class="space-y-10">
+                <div class="mpill-row">
+                    <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-4" style="font-family:'Space Grotesk',sans-serif">Pre-Production</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <span class="mpill">Location scouting</span>
+                        <span class="mpill gold">Set design</span>
+                        <span class="mpill">Wardrobe exploration</span>
+                        <span class="mpill">Storyboards</span>
+                    </div>
+                </div>
+                <div class="mpill-row">
+                    <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-4" style="font-family:'Space Grotesk',sans-serif">Production</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <span class="mpill gold">AI video generation</span>
+                        <span class="mpill">Camera &amp; motion control</span>
+                        <span class="mpill">Style transfer on live footage</span>
+                        <span class="mpill gold">Character &amp; environment generation</span>
+                    </div>
+                </div>
+                <div class="mpill-row">
+                    <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-4" style="font-family:'Space Grotesk',sans-serif">Post-Production</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <span class="mpill">Inpainting &amp; object removal</span>
+                        <span class="mpill">AI relighting</span>
+                        <span class="mpill gold">Upscaling</span>
+                        <span class="mpill">Background extension</span>
+                        <span class="mpill">Compositing</span>
                     </div>
                 </div>
             </div>
@@ -624,105 +847,25 @@
     </section>
 
 
-    <!-- ========== CAPABILITIES ========== -->
-    <section class="content-layer py-24 md:py-32 border-t border-white/5 bg-[#050505] relative" style="z-index: 30;">
+    <!-- ========== THE HUMANS ========== -->
+    <section id="about" class="content-layer py-24 md:py-32 bg-[#050505] relative border-t border-white/5" style="z-index: 20;">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="mb-8">
-                <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-8">Capabilities</h3>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="cap-card bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-gold/20 transition-all backdrop-blur-sm">
-                    <div class="flex items-center gap-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-                        <h4 class="text-sm font-medium text-white">Pre-Production</h4>
-                    </div>
-                    <ul class="space-y-2">
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Location scouting &amp; set design</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Wardrobe &amp; styling exploration</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Storyboard generation</li>
-                    </ul>
-                </div>
-                <div class="cap-card bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-gold/20 transition-all backdrop-blur-sm">
-                    <div class="flex items-center gap-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
-                        <h4 class="text-sm font-medium text-white">Production</h4>
-                    </div>
-                    <ul class="space-y-2">
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>AI video generation</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Camera &amp; motion control</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Style transfer on live footage</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Character &amp; environment generation</li>
-                    </ul>
-                </div>
-                <div class="cap-card bg-zinc-900/50 border border-white/5 rounded-xl p-6 hover:border-gold/20 transition-all backdrop-blur-sm">
-                    <div class="flex items-center gap-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
-                        <h4 class="text-sm font-medium text-white">Post-Production</h4>
-                    </div>
-                    <ul class="space-y-2">
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Inpainting &amp; object removal</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>AI relighting &amp; color grading</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Upscaling &amp; enhancement</li>
-                        <li class="text-xs text-zinc-500 flex items-start gap-2"><span class="text-gold/60 mt-0.5">-</span>Background extension &amp; compositing</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ========== ABOUT / TEAM ========== -->
-    <section id="about" class="content-layer py-24 md:py-32 bg-[#050505] relative" style="z-index: 20;">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-24 gap-12">
-                <div class="lg:col-span-4">
-                    <div class="lg:sticky lg:top-32">
-                        <div class="w-12 h-12 bg-gold rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(201,168,76,0.3)]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
-                        </div>
-                        <h2 class="text-3xl font-medium text-white tracking-tight mb-6">The Team</h2>
-                        <p class="text-zinc-500 text-sm leading-relaxed mb-8">
-                            CooCoo is a collective of directors, prompters, and creative coders. We don't just use tools; we break them to make art.
-                        </p>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:border-white/20 transition-all hover:bg-zinc-900 group cursor-default backdrop-blur-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M17 2v2"/><path d="M7 2v2"/><path d="M2 7h2"/><path d="M2 17h2"/><path d="M20 7h2"/><path d="M20 17h2"/><path d="M17 20v2"/><path d="M7 20v2"/></svg>
-                                <div>
-                                    <h4 class="text-sm font-medium text-white">Neural Rendering</h4>
-                                    <p class="text-xs text-zinc-500">Custom diffusion models</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:border-white/20 transition-all hover:bg-zinc-900 group cursor-default backdrop-blur-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>
-                                <div>
-                                    <h4 class="text-sm font-medium text-white">Mixed Reality</h4>
-                                    <p class="text-xs text-zinc-500">Live action + AI blending</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-8 pt-8 border-t border-white/5">
-                            <h3 class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-4">Leadership</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-3 group cursor-default">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
-                                        <img src="nick.jpg" alt="Nick" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
-                                    </div>
-                                    <div class="text-sm font-medium text-white group-hover:text-gold transition-colors">Nick</div>
-                                </div>
-                                <div class="flex items-center gap-3 group cursor-default">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
-                                        <img src="michael.jpg" alt="Michael" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
-                                    </div>
-                                    <div class="text-sm font-medium text-white group-hover:text-gold transition-colors">Michael</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:col-span-8 flex flex-col justify-center">
-                    <p class="about-text text-2xl md:text-4xl leading-tight font-normal text-zinc-500 mb-12">
-                        CooCoo is a collective of directors, prompters, and creative coders. We don't just use tools; we <span class="text-white">break them</span> to make art.
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-medium text-white tracking-tighter mb-8">The humans</h2>
+                    <p class="about-text text-2xl md:text-4xl leading-tight font-normal text-zinc-500">
+                        We don't just use the tools. We <span class="text-white">break them</span> to make art. Custom diffusion pipelines, neural rendering, live action blended with the imaginary. <span class="text-gold">Directors first, engineers by necessity.</span>
                     </p>
+                </div>
+                <div class="humans-photos flex justify-center items-center gap-6 md:gap-10 py-8">
+                    <div class="taped w-[42%] max-w-[230px]" style="--tilt: -5deg; --tape-r: -4deg;">
+                        <img src="nick.jpg" alt="Nick" class="aspect-[4/5] object-cover w-full grayscale">
+                        <div class="tag">Nick &#10022; Director</div>
+                    </div>
+                    <div class="taped w-[42%] max-w-[230px] mt-12" style="--tilt: 4deg; --tape-r: 5deg;">
+                        <img src="michael.jpg" alt="Michael" class="aspect-[4/5] object-cover w-full grayscale">
+                        <div class="tag">Michael &#10022; Tech</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -830,6 +973,8 @@
     const heroPortalEl = document.querySelector('.hero-portal');
     const heroOLetters = document.querySelectorAll('.hero-o');
 
+    const oSceneEls = document.querySelectorAll('.o-scene');
+
     function updateOOCircles() {
         if (!heroPortalEl || heroOLetters.length < 4) return;
         const portalRect = heroPortalEl.getBoundingClientRect();
@@ -838,29 +983,44 @@
             const rect = oEl.getBoundingClientRect();
             const charHeight = rect.bottom - rect.top;
             const charWidth = rect.right - rect.left;
-            // Center of the O hole relative to portal
-            // Constants from canvas flood-fill of Space Grotesk "o" at 128px
-            const cx = rect.left + charWidth * 0.49 - portalRect.left;
-            const cy = rect.top + charHeight * 0.575 - portalRect.top;
-            const rx = charHeight * 0.225;
-            const ry = charHeight * 0.225;
+            // Full-letter circle: diameter ~ cap height, centered on the cap line
+            // so the circle replaces the whole O and matches the C's height
+            const cx = rect.left + charWidth * 0.5 - portalRect.left;
+            const cy = rect.top + charHeight * 0.46 - portalRect.top;
+            const rx = charHeight * 0.34;
+            const ry = charHeight * 0.34;
 
             const ellipse = document.querySelector('.oo-circle-' + (i + 1));
+            const hidden = oEl.classList.contains('letter-hidden');
             if (ellipse) {
                 ellipse.setAttribute('cx', cx);
                 ellipse.setAttribute('cy', cy);
                 // Hide clip hole when letter is hidden (TV static flicker)
-                const hidden = oEl.classList.contains('letter-hidden');
                 ellipse.setAttribute('rx', hidden ? 0 : rx);
                 ellipse.setAttribute('ry', hidden ? 0 : ry);
+            }
+
+            // Position the per-O scene portal over the same hole
+            const scene = oSceneEls[i];
+            if (scene) {
+                const d = rx * 2;
+                scene.style.left = cx + 'px';
+                scene.style.top = cy + 'px';
+                scene.style.width = d + 'px';
+                scene.style.height = d + 'px';
+                scene.style.setProperty('--ringw', Math.max(2, d * 0.028) + 'px');
+                scene.style.visibility = (hidden || d <= 0) ? 'hidden' : 'visible';
             }
         });
     }
 
+    // Center scene portals on their JS-set left/top (GSAP owns the transform so scale composes)
+    gsap.set('.o-scene', { xPercent: -50, yPercent: -50 });
     // Initial position (may use fallback metrics before fonts load)
     updateOOCircles();
     // Reveal portal once circles are positioned (prevents flash of unclipped video)
     if (heroPortalEl) heroPortalEl.classList.add('portal-ready');
+    oSceneEls.forEach(s => s.classList.add('scene-ready'));
     // Recalculate once fonts are fully loaded for accurate positions
     document.fonts.ready.then(() => {
         updateOOCircles();
@@ -934,11 +1094,27 @@
         duration: 1
     }, 0);
 
+    // The four O scenes blow open and dissolve as the reel bursts through
+    heroTL.to('.o-scene', {
+        opacity: 0,
+        scale: 2.2,
+        ease: 'power2.in',
+        duration: 0.22,
+        stagger: 0.02
+    }, 0);
+
     heroTL.to(heroText, {
         opacity: 0,
         y: -80,
         ease: 'power2.in',
         duration: 0.4
+    }, 0);
+
+    heroTL.to('.hero-stickers', {
+        opacity: 0,
+        y: -60,
+        ease: 'power2.in',
+        duration: 0.35
     }, 0);
 
     heroTL.to(heroScrollHint, {
@@ -1012,176 +1188,92 @@
     });
 
 
-    // ——— HORIZONTAL SCROLL (desktop only) ———
-    const hscrollTrack = document.querySelector('.hscroll-track');
-    const hscrollWrap = document.querySelector('.hscroll-wrap');
-    const hscrollHeading = document.querySelector('.hscroll-heading');
-    if (hscrollTrack && hscrollWrap && window.innerWidth >= 768) {
-        function getScrollDistance() {
-            return hscrollTrack.scrollWidth - window.innerWidth;
-        }
-        function getRevealDistance() {
-            return Math.round(window.innerHeight * 0.7);
-        }
-        gsap.set(hscrollTrack, { x: () => window.innerWidth, opacity: 0 });
-        if (hscrollHeading) {
-            gsap.set(hscrollHeading, { opacity: 0, y: 40 });
-        }
-        const workTL = gsap.timeline({
+    // ——— THE DOOR: pin, expand, scrub the film, bloom white ———
+    const doorVideo = document.getElementById('door-video');
+    if (doorVideo) {
+        let doorTargetTime = 0;
+
+        const doorTL = gsap.timeline({
             scrollTrigger: {
-                trigger: '.hscroll-section',
+                trigger: '.door-section',
                 start: 'top top',
-                end: () => '+=' + (getRevealDistance() + getScrollDistance()),
-                scrub: 1,
-                pin: true,
-                anticipatePin: 1,
-                invalidateOnRefresh: true
-            }
-        });
-        // Phase 1: heading + reel reveal together
-        workTL.to(hscrollTrack, {
-            x: 0,
-            opacity: 1,
-            ease: 'power2.out',
-            duration: getRevealDistance()
-        }, 0);
-        if (hscrollHeading) {
-            workTL.to(hscrollHeading, {
-                opacity: 1,
-                y: 0,
-                ease: 'power2.out',
-                duration: getRevealDistance()
-            }, 0);
-        }
-        // Phase 2: horizontal scroll through the slides
-        workTL.to(hscrollTrack, {
-            x: () => -getScrollDistance(),
-            ease: 'none',
-            duration: getScrollDistance()
-        });
-    } else if (hscrollWrap) {
-        hscrollWrap.style.overflowX = 'auto';
-        hscrollWrap.style.WebkitOverflowScrolling = 'touch';
-    }
-
-
-    // ——— Process section: pin full viewport, crossfade steps (desktop) ———
-    // NOTE: Must be created AFTER hscroll trigger so pin spacing is accounted for
-    if (isDesktop) {
-        const processTL = gsap.timeline({
-            scrollTrigger: {
-                trigger: '.process-morph-section',
-                start: 'top top',
-                end: 'bottom top',
-                scrub: 0.8,
-                pin: '.process-morph-pin',
-                pinSpacing: false
+                end: 'bottom bottom',
+                scrub: 0.5,
+                pin: '.door-pin',
+                pinSpacing: false,
+                onUpdate: (self) => {
+                    // Map scroll progress to film time: walk + step + white bloom
+                    if (doorVideo.duration) {
+                        doorTargetTime = Math.min(0.999, self.progress * 1.04) * doorVideo.duration;
+                    }
+                }
             }
         });
 
-        // Animate the cut line wipe
-        gsap.to('.process-cut-line', {
-            scaleX: 1,
-            duration: 0.4,
-            ease: 'power2.out',
-            scrollTrigger: {
-                trigger: '.process-morph-section',
-                start: 'top 10%',
-                toggleActions: 'play none none reverse'
-            }
-        });
+        // The door opens: small door grows to swallow the viewport
+        doorTL.to('.door-frame', {
+            height: '100vh',
+            aspectRatio: '',
+            width: '100vw',
+            borderRadius: 0,
+            ease: 'power2.inOut',
+            duration: 0.6
+        }, 0.15);
 
-        const processSlides = document.querySelectorAll('.process-slide');
-        const processDots = document.querySelectorAll('.process-dot');
-
-        processSlides.forEach((slide, i) => {
-            if (i === 0) {
-                slide.classList.add('gsap-controlled');
-                gsap.set(slide, { opacity: 1, yPercent: 0, zIndex: 1 });
-            } else {
-                gsap.set(slide, { opacity: 1, yPercent: 100, zIndex: i + 1 });
-                const stepDuration = 0.8 / processSlides.length;
-                const enterStart = 0.05 + i * stepDuration;
-                processTL.to(slide,
-                    { yPercent: 0, duration: stepDuration * 0.6, ease: 'power2.out' },
-                    enterStart
-                );
-            }
-        });
-
-        // Progress dots update
-        processTL.to({}, {
-            duration: 1,
-            onUpdate: function() {
-                const p = this.progress();
-                const activeIdx = Math.min(3, Math.floor(p * 4));
-                processDots.forEach((dot, i) => {
-                    dot.style.backgroundColor = i === activeIdx ? '#C9A84C' : '#3f3f46';
-                });
-            }
-        }, 0);
-
-        // Hold the last step visible, then fade out at the very end
-        const processMorphPin = document.querySelector('.process-morph-pin');
-        processTL.to(processMorphPin, {
+        // The title steps aside as you approach the door
+        doorTL.to('.door-title-wrap', {
             opacity: 0,
-            duration: 0.05,
-            ease: 'power2.in'
-        }, 0.95);
-    }
+            y: -40,
+            ease: 'power2.in',
+            duration: 0.2
+        }, 0.18);
 
+        // The bloom: pure white takes the frame at the peak
+        doorTL.to('.door-bloom', {
+            opacity: 1,
+            ease: 'power1.in',
+            duration: 0.18
+        }, 0.82);
 
-    // ——— PROCESS TITLE: SplitText (desktop morph version) ———
-    if (isDesktop) {
-        const processTitle = document.querySelector('.process-main-title');
-        if (processTitle) {
-            const splitProcess = new SplitText(processTitle, { type: 'chars' });
-            gsap.from(splitProcess.chars, {
-                opacity: 0,
-                y: 40,
-                rotateX: -90,
-                stagger: 0.03,
-                duration: 0.8,
-                ease: 'back.out(1.7)',
-                scrollTrigger: {
-                    trigger: '.process-morph-section',
-                    start: 'top 80%',
-                    toggleActions: 'play none none none'
+        // Smooth time scrubbing — lerp currentTime toward the scroll target
+        (function doorScrubLoop() {
+            if (doorVideo.readyState >= 1 && !doorVideo.seeking) {
+                const cur = doorVideo.currentTime;
+                const next = cur + (doorTargetTime - cur) * 0.22;
+                if (Math.abs(next - cur) > 0.012) {
+                    try { doorVideo.currentTime = next; } catch (e) { /* not seekable yet */ }
+                }
+            }
+            requestAnimationFrame(doorScrubLoop);
+        })();
+
+        // Nudge the browser to fetch the video early enough to scrub
+        const doorLoadObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    doorVideo.load();
+                    doorLoadObserver.disconnect();
                 }
             });
-        }
-    } else {
-        // Mobile: simple fade-in for each process step
-        document.querySelectorAll('.process-slide').forEach((step, i) => {
-            gsap.from(step, {
-                opacity: 0,
-                y: 30,
-                duration: 0.7,
-                ease: 'power2.out',
-                scrollTrigger: {
-                    trigger: step,
-                    start: 'top 85%',
-                    toggleActions: 'play none none none'
-                },
-                delay: i * 0.1
-            });
-        });
+        }, { rootMargin: '100% 0px' });
+        doorLoadObserver.observe(doorVideo);
     }
 
 
-    // ——— CAPABILITY CARDS: Staggered reveal ———
-    document.querySelectorAll('.cap-card').forEach((card, i) => {
-        gsap.from(card, {
+    // ——— TICKETS / PILLS / TAPED PHOTOS: Staggered reveals ———
+    document.querySelectorAll('.ticket, .mpill-row, .film-copy, .film-stills .taped, .humans-photos .taped').forEach((el, i) => {
+        gsap.from(el, {
             opacity: 0,
             y: 30,
             duration: 0.7,
             ease: 'power2.out',
+            clearProps: 'transform,opacity',
             scrollTrigger: {
-                trigger: card,
-                start: 'top 85%',
+                trigger: el,
+                start: 'top 88%',
                 toggleActions: 'play none none none'
             },
-            delay: i * 0.1
+            delay: (i % 4) * 0.08
         });
     });
 
@@ -1336,300 +1428,6 @@
     }
 
 
-    // ——— PROCESS PARTICLE SYSTEM ———
-    (function() {
-        const canvas = document.getElementById('process-particles');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-
-        const isMobile = window.innerWidth < 768;
-        const PARTICLE_COUNT = isMobile ? 150 : 250;
-        const GOLD = { r: 201, g: 168, b: 76 };
-        const WHITE = { r: 255, g: 255, b: 255 };
-
-        let W, H, cx, cy, particles = [], progress = 0;
-        let animFrame;
-
-        // Grid target: 16x16 = 256 positions, we use PARTICLE_COUNT
-        const GRID_COLS = 16;
-        const GRID_ROWS = Math.ceil(PARTICLE_COUNT / GRID_COLS);
-
-        function resize() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            W = rect.width;
-            H = rect.height;
-            canvas.width = W * dpr;
-            canvas.height = H * dpr;
-            canvas.style.width = W + 'px';
-            canvas.style.height = H + 'px';
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            // On desktop, offset particles to the right half; on mobile, center them
-            cx = W >= 768 ? W * 0.65 : W / 2;
-            cy = H / 2;
-        }
-
-        function initParticles() {
-            particles = [];
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                // Scatter positions — wide random spread
-                const angle = Math.random() * Math.PI * 2;
-                const dist = 40 + Math.random() * Math.min(W, H) * 0.45;
-                particles.push({
-                    // Current positions
-                    x: cx + Math.cos(angle) * dist,
-                    y: cy + Math.sin(angle) * dist,
-                    // Scatter (phase 0: Brief)
-                    scatterX: cx + Math.cos(angle) * dist,
-                    scatterY: cy + Math.sin(angle) * dist,
-                    scatterDriftX: (Math.random() - 0.5) * 0.3,
-                    scatterDriftY: (Math.random() - 0.5) * 0.3,
-                    // Swirl (phase 1: Generate)
-                    swirlAngle: angle,
-                    swirlDist: 20 + Math.random() * 100,
-                    swirlSpeed: 0.5 + Math.random() * 1.5,
-                    // Grid (phase 2: Refine)
-                    gridX: 0,
-                    gridY: 0,
-                    // Package (phase 3: Deliver)
-                    packageX: 0,
-                    packageY: 0,
-                    // Visual
-                    size: 1 + Math.random() * 2,
-                    alpha: 0.1 + Math.random() * 0.3,
-                    baseAlpha: 0.1 + Math.random() * 0.3,
-                    color: Math.random() > 0.7 ? WHITE : GOLD,
-                    pulseOffset: Math.random() * Math.PI * 2,
-                    index: i
-                });
-            }
-            computeTargets();
-        }
-
-        function computeTargets() {
-            // Grid targets — centered, tight spacing
-            const gridSpacing = Math.min(W, H) * 0.025;
-            const gridW = (GRID_COLS - 1) * gridSpacing;
-            const gridH = (GRID_ROWS - 1) * gridSpacing;
-            const gridOx = cx - gridW / 2;
-            const gridOy = cy - gridH / 2;
-
-            // Package targets — compressed to ~40% of grid
-            const pkgScale = 0.35;
-            const pkgW = gridW * pkgScale;
-            const pkgH = gridH * pkgScale;
-            const pkgOx = cx - pkgW / 2;
-            const pkgOy = cy - pkgH / 2;
-
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const col = i % GRID_COLS;
-                const row = Math.floor(i / GRID_COLS);
-                particles[i].gridX = gridOx + col * gridSpacing;
-                particles[i].gridY = gridOy + row * gridSpacing;
-
-                // Package: same grid order but compressed
-                const pkgSpacingX = GRID_COLS > 1 ? pkgW / (GRID_COLS - 1) : 0;
-                const pkgSpacingY = GRID_ROWS > 1 ? pkgH / (GRID_ROWS - 1) : 0;
-                particles[i].packageX = pkgOx + col * pkgSpacingX;
-                particles[i].packageY = pkgOy + row * pkgSpacingY;
-            }
-        }
-
-        // Easing helpers
-        function ease(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
-        function lerp(a, b, t) { return a + (b - a) * t; }
-
-        // Phase boundaries
-        // 0.00 - 0.25: Brief (scattered, drifting)
-        // 0.25 - 0.50: Generate (swirl, ignite)
-        // 0.50 - 0.75: Refine (snap to grid)
-        // 0.75 - 1.00: Deliver (compress to package)
-
-        let time = 0;
-
-        function update() {
-            time += 0.016; // ~60fps timestep
-            const p = progress;
-
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const pt = particles[i];
-                let tx, ty, ta, ts;
-
-                if (p < 0.25) {
-                    // BRIEF — scattered, slowly drifting, low alpha
-                    const phase = p / 0.25;
-                    pt.scatterX += pt.scatterDriftX;
-                    pt.scatterY += pt.scatterDriftY;
-                    tx = pt.scatterX;
-                    ty = pt.scatterY;
-                    ta = pt.baseAlpha * (0.2 + phase * 0.4);
-                    ts = pt.size * (0.5 + phase * 0.3);
-                    // Subtle pulse
-                    ta += Math.sin(time * 1.5 + pt.pulseOffset) * 0.05;
-                } else if (p < 0.50) {
-                    // GENERATE — ignite, swirl toward center
-                    const phase = ease((p - 0.25) / 0.25);
-                    pt.swirlAngle += pt.swirlSpeed * 0.03;
-                    const swirlR = pt.swirlDist * (1 - phase * 0.6);
-                    const swirlX = cx + Math.cos(pt.swirlAngle) * swirlR;
-                    const swirlY = cy + Math.sin(pt.swirlAngle) * swirlR;
-                    // Blend from scatter to swirl
-                    tx = lerp(pt.scatterX, swirlX, phase);
-                    ty = lerp(pt.scatterY, swirlY, phase);
-                    ta = lerp(pt.baseAlpha * 0.6, 0.9, phase);
-                    ts = pt.size * (0.8 + phase * 0.8);
-                    // Hot glow at peak
-                    ta += Math.sin(time * 3 + pt.pulseOffset) * 0.1 * phase;
-                } else if (p < 0.75) {
-                    // REFINE — snap from swirl positions to grid
-                    const phase = ease((p - 0.50) / 0.25);
-                    const swirlR = pt.swirlDist * 0.4;
-                    const swirlX = cx + Math.cos(pt.swirlAngle) * swirlR;
-                    const swirlY = cy + Math.sin(pt.swirlAngle) * swirlR;
-                    tx = lerp(swirlX, pt.gridX, phase);
-                    ty = lerp(swirlY, pt.gridY, phase);
-                    // Excess particles fade (those beyond grid)
-                    const row = Math.floor(i / GRID_COLS);
-                    if (row >= GRID_ROWS - 1 && i % GRID_COLS > PARTICLE_COUNT % GRID_COLS && PARTICLE_COUNT % GRID_COLS !== 0) {
-                        ta = lerp(0.8, 0, phase);
-                    } else {
-                        ta = lerp(0.9, 0.7, phase);
-                    }
-                    ts = lerp(pt.size * 1.6, pt.size * 0.9, phase);
-                } else {
-                    // DELIVER — compress to tight package
-                    const phase = ease((p - 0.75) / 0.25);
-                    tx = lerp(pt.gridX, pt.packageX, phase);
-                    ty = lerp(pt.gridY, pt.packageY, phase);
-                    ta = 0.7 + phase * 0.3;
-                    ts = lerp(pt.size * 0.9, pt.size * 0.6, phase);
-                }
-
-                pt.x = tx;
-                pt.y = ty;
-                pt.alpha = Math.max(0, Math.min(1, ta));
-                pt.renderSize = Math.max(0.5, ts);
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, W, H);
-            const p = progress;
-
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const pt = particles[i];
-                if (pt.alpha <= 0) continue;
-
-                const { r, g, b } = pt.color;
-                // During Generate phase, add warm glow
-                let cr = r, cg = g, cb = b;
-                if (p >= 0.25 && p < 0.5) {
-                    const heat = ease((p - 0.25) / 0.25);
-                    cr = Math.min(255, r + heat * 54);
-                    cg = Math.min(255, g + heat * 20);
-                }
-
-                ctx.globalAlpha = pt.alpha;
-                ctx.fillStyle = `rgb(${cr|0},${cg|0},${cb|0})`;
-                ctx.beginPath();
-                ctx.arc(pt.x, pt.y, pt.renderSize, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Glow during Generate
-                if (p >= 0.2 && p < 0.55) {
-                    const glowPhase = p < 0.25 ? (p - 0.2) / 0.05 : p < 0.5 ? 1 : 1 - (p - 0.5) / 0.05;
-                    ctx.globalAlpha = pt.alpha * 0.15 * glowPhase;
-                    ctx.beginPath();
-                    ctx.arc(pt.x, pt.y, pt.renderSize * 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-
-            // Deliver phase: draw border box
-            if (p > 0.78) {
-                const boxPhase = ease(Math.min(1, (p - 0.78) / 0.15));
-                const pkgScale = 0.35;
-                const gridSpacing = Math.min(W, H) * 0.025;
-                const gridW = (GRID_COLS - 1) * gridSpacing;
-                const gridH = (GRID_ROWS - 1) * gridSpacing;
-                const bw = gridW * pkgScale + 20;
-                const bh = gridH * pkgScale + 20;
-                const bx = cx - bw / 2;
-                const by = cy - bh / 2;
-
-                ctx.globalAlpha = boxPhase * 0.6;
-                ctx.strokeStyle = `rgb(${GOLD.r},${GOLD.g},${GOLD.b})`;
-                ctx.lineWidth = 1.5;
-
-                // Draw border with wipe-in effect
-                const perim = 2 * (bw + bh);
-                const drawLen = perim * boxPhase;
-                ctx.beginPath();
-                let drawn = 0;
-                // Top
-                const topLen = Math.min(bw, drawLen - drawn);
-                if (topLen > 0) { ctx.moveTo(bx, by); ctx.lineTo(bx + topLen, by); drawn += topLen; }
-                // Right
-                const rightLen = Math.min(bh, drawLen - drawn);
-                if (rightLen > 0) { ctx.moveTo(bx + bw, by); ctx.lineTo(bx + bw, by + rightLen); drawn += rightLen; }
-                // Bottom
-                const botLen = Math.min(bw, drawLen - drawn);
-                if (botLen > 0) { ctx.moveTo(bx + bw, by + bh); ctx.lineTo(bx + bw - botLen, by + bh); drawn += botLen; }
-                // Left
-                const leftLen = Math.min(bh, drawLen - drawn);
-                if (leftLen > 0) { ctx.moveTo(bx, by + bh); ctx.lineTo(bx, by + bh - leftLen); }
-                ctx.stroke();
-
-                // Seal circle at top-right when box is nearly complete
-                if (boxPhase > 0.8) {
-                    const sealPhase = (boxPhase - 0.8) / 0.2;
-                    ctx.globalAlpha = sealPhase * 0.7;
-                    ctx.beginPath();
-                    ctx.arc(bx + bw - 4, by + 4, 6 * sealPhase, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgb(${GOLD.r},${GOLD.g},${GOLD.b})`;
-                    ctx.fill();
-                    ctx.globalAlpha = sealPhase * 0.3;
-                    ctx.beginPath();
-                    ctx.arc(bx + bw - 4, by + 4, 10 * sealPhase, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-            }
-
-            ctx.globalAlpha = 1;
-        }
-
-        function loop() {
-            update();
-            draw();
-            animFrame = requestAnimationFrame(loop);
-        }
-
-        // Sync with GSAP scroll progress
-        ScrollTrigger.create({
-            trigger: '.process-morph-section',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true,
-            onUpdate: (self) => {
-                progress = self.progress;
-            }
-        });
-
-        // Init
-        resize();
-        initParticles();
-        loop();
-
-        // Handle resize
-        let resizeTimer;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                resize();
-                computeTargets();
-            }, 150);
-        });
-    })();
 
 
     </script>
@@ -1679,6 +1477,8 @@
             for (let i = 0; i < allLetters.length; i++) {
                 allLetters[i].style.backgroundImage = bg;
             }
+            // Feed the same static into the O portal rings
+            document.documentElement.style.setProperty('--tv-static', bg);
         }
 
         requestAnimationFrame(animate);
@@ -1707,6 +1507,567 @@
             }
             scheduleFlicker();
         });
+    })();
+    </script>
+
+<!-- Sticker physics: drag, throw, fall, respawn -->
+    <script>
+    (function() {
+        if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+        var container = document.querySelector('.hero-stickers');
+        if (!container) return;
+        var stickers = Array.from(container.querySelectorAll('.sticker'));
+        var GRAVITY = 2600;          // px/s^2
+        var RESTITUTION = 0.45;
+        var FLOOR_FRICTION = 0.72;
+        var active = new Set();
+        var loopRunning = false;
+
+        stickers.forEach(function(el) {
+            var st = {
+                el: el,
+                originalCss: el.getAttribute('style'),
+                x: 0, y: 0, vx: 0, vy: 0,
+                rot: parseFloat((el.style.getPropertyValue('--r') || '0').replace('deg','')) || 0,
+                vr: 0,
+                grabbed: false, falling: false, settled: false,
+                lastMoves: []
+            };
+
+            function toAbsolute() {
+                var cRect = container.getBoundingClientRect();
+                var r = el.getBoundingClientRect();
+                st.x = r.left - cRect.left;
+                st.y = r.top - cRect.top;
+                st.w = r.width;
+                st.h = r.height;
+                el.style.left = st.x + 'px';
+                el.style.top = st.y + 'px';
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+                applyTransform();
+            }
+
+            function applyTransform() {
+                el.style.transform = 'rotate(' + st.rot + 'deg)';
+            }
+
+            el.addEventListener('pointerdown', function(e) {
+                e.preventDefault();
+                toAbsolute();
+                st.grabbed = true;
+                st.falling = false;
+                st.settled = false;
+                st.grabDX = e.clientX - (container.getBoundingClientRect().left + st.x);
+                st.grabDY = e.clientY - (container.getBoundingClientRect().top + st.y);
+                st.lastMoves = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+                st.downAt = performance.now();
+                st.downX = e.clientX; st.downY = e.clientY;
+                el.setPointerCapture(e.pointerId);
+                active.add(st);
+                startLoop();
+            });
+
+            el.addEventListener('pointermove', function(e) {
+                if (!st.grabbed) return;
+                var cRect = container.getBoundingClientRect();
+                st.x = e.clientX - cRect.left - st.grabDX;
+                st.y = e.clientY - cRect.top - st.grabDY;
+                st.lastMoves.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+                if (st.lastMoves.length > 6) st.lastMoves.shift();
+                el.style.left = st.x + 'px';
+                el.style.top = st.y + 'px';
+            });
+
+            el.addEventListener('pointerup', function(e) {
+                if (!st.grabbed) return;
+                st.grabbed = false;
+                var now = performance.now();
+                var quickTap = (now - st.downAt < 250) &&
+                    Math.abs(e.clientX - st.downX) < 5 && Math.abs(e.clientY - st.downY) < 5;
+                if (quickTap) {
+                    // A tap knocks it off the wall — it just falls
+                    st.vx = (Math.random() - 0.5) * 120;
+                    st.vy = -150 - Math.random() * 100;
+                } else {
+                    var m = st.lastMoves;
+                    var a = m[0], b = m[m.length - 1];
+                    var dt = Math.max(0.016, (b.t - a.t) / 1000);
+                    st.vx = (b.x - a.x) / dt;
+                    st.vy = (b.y - a.y) / dt;
+                }
+                st.vr = st.vx * 0.08 + (Math.random() - 0.5) * 60;
+                st.falling = true;
+            });
+
+            st.step = function(dt) {
+                if (st.grabbed) return true;
+                if (!st.falling) return false;
+                st.vy += GRAVITY * dt;
+                st.x += st.vx * dt;
+                st.y += st.vy * dt;
+                st.rot += st.vr * dt;
+
+                var cRect = container.getBoundingClientRect();
+                var floor = cRect.height - st.h - 4;
+
+                if (st.y >= floor) {
+                    st.y = floor;
+                    if (Math.abs(st.vy) > 120) {
+                        st.vy = -st.vy * RESTITUTION;
+                        st.vx *= FLOOR_FRICTION;
+                        st.vr *= 0.5;
+                    } else {
+                        st.vy = 0;
+                        st.vx *= 0.85;
+                        st.vr *= 0.8;
+                        // ease the sticker flat-ish as it settles
+                        var flat = Math.round(st.rot / 180) * 180;
+                        st.rot += (flat - st.rot) * 0.12;
+                        if (Math.abs(st.vx) < 8) {
+                            st.falling = false;
+                            st.settled = true;
+                        }
+                    }
+                }
+
+                // flew out the sides — respawn later
+                if (st.x < -st.w - 60 || st.x > cRect.width + 60) {
+                    st.falling = false;
+                    el.style.visibility = 'hidden';
+                    setTimeout(function() { respawn(); }, 4500);
+                }
+
+                el.style.left = st.x + 'px';
+                el.style.top = st.y + 'px';
+                applyTransform();
+                return st.falling;
+            };
+
+            function respawn() {
+                el.setAttribute('style', st.originalCss);
+                el.style.visibility = 'visible';
+                st.rot = parseFloat((el.style.getPropertyValue('--r') || '0').replace('deg','')) || 0;
+                st.falling = false; st.settled = false;
+                if (window.gsap) {
+                    gsap.from(el, { scale: 0, rotation: st.rot + 25, duration: 0.6, ease: 'back.out(2)', clearProps: 'scale,rotation' });
+                }
+            }
+        });
+
+        var lastT = 0;
+        function loop(t) {
+            if (!lastT) lastT = t;
+            var dt = Math.min(0.033, (t - lastT) / 1000);
+            lastT = t;
+            var anyAlive = false;
+            active.forEach(function(st) {
+                var alive = st.step(dt);
+                if (!alive && !st.grabbed && !st.falling) active.delete(st);
+                else anyAlive = true;
+            });
+            if (anyAlive) {
+                requestAnimationFrame(loop);
+            } else {
+                loopRunning = false;
+                lastT = 0;
+            }
+        }
+        function startLoop() {
+            if (loopRunning) return;
+            loopRunning = true;
+            lastT = 0;
+            requestAnimationFrame(loop);
+        }
+    })();
+    </script>
+
+<!-- Machine pills: floating, draggable, throwable, drift back home -->
+    <script>
+    (function() {
+        if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var section = document.querySelector('.machines-section');
+        if (!section) return;
+        var pills = Array.from(section.querySelectorAll('.mpill'));
+        if (!pills.length) return;
+        var hint = document.getElementById('pill-hint');
+        if (hint) hint.style.display = 'inline';
+
+        var FRICTION = 2.0;       // air drag while flying (no gravity — they float)
+        var RESTITUTION = 0.55;
+        var HOME_SPRING = 34;     // spring pulling a pill back to its spot
+        var HOME_DAMP = 8;
+        var PAD = 8;              // wall inset inside the section
+
+        var states = pills.map(function(el) {
+            el.classList.add('phys');
+            var st = {
+                el: el,
+                ox: 0, oy: 0, vx: 0, vy: 0, rot: 0,
+                mode: 'bob',  // bob | grab | free | home
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.4 + Math.random() * 0.5,
+                ampX: 4 + Math.random() * 5,
+                ampY: 3 + Math.random() * 4,
+                home: null, lastMoves: []
+            };
+
+            el.addEventListener('pointerdown', function(e) {
+                e.preventDefault();
+                st.mode = 'grab';
+                st.grabDX = e.clientX - st.ox;
+                st.grabDY = e.clientY - st.oy;
+                st.lastMoves = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+                el.setPointerCapture(e.pointerId);
+                el.style.zIndex = 60;
+            });
+            el.addEventListener('pointermove', function(e) {
+                if (st.mode !== 'grab') return;
+                st.ox = e.clientX - st.grabDX;
+                st.oy = e.clientY - st.grabDY;
+                st.lastMoves.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+                if (st.lastMoves.length > 6) st.lastMoves.shift();
+            });
+            el.addEventListener('pointerup', function() {
+                if (st.mode !== 'grab') return;
+                var m = st.lastMoves;
+                var a = m[0], b = m[m.length - 1];
+                var mdt = Math.max(0.016, (b.t - a.t) / 1000);
+                st.vx = (b.x - a.x) / mdt;
+                st.vy = (b.y - a.y) / mdt;
+                st.mode = 'free';
+            });
+            return st;
+        });
+
+        function measureHomes() {
+            states.forEach(function(st) { st.el.style.transform = 'none'; });
+            var sRect = section.getBoundingClientRect();
+            states.forEach(function(st) {
+                var r = st.el.getBoundingClientRect();
+                st.home = { left: r.left - sRect.left, top: r.top - sRect.top, w: r.width, h: r.height };
+            });
+        }
+        measureHomes();
+        window.addEventListener('load', measureHomes);
+        var rsTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(rsTimer);
+            rsTimer = setTimeout(measureHomes, 200);
+        });
+
+        function apply(st) {
+            st.el.style.transform = 'translate(' + st.ox + 'px,' + st.oy + 'px) rotate(' + st.rot + 'deg)';
+        }
+
+        var running = false, lastT = 0, elapsed = 0;
+        function loop(t) {
+            if (!running) { lastT = 0; return; }
+            if (!lastT) lastT = t;
+            var dt = Math.min(0.033, (t - lastT) / 1000);
+            lastT = t;
+            elapsed += dt;
+            var sw = section.getBoundingClientRect().width;
+            var sh = section.offsetHeight;
+
+            states.forEach(function(st) {
+                if (st.mode === 'grab') {
+                    st.rot = Math.max(-8, Math.min(8, (st.lastMoves.length > 1 ?
+                        (st.lastMoves[st.lastMoves.length - 1].x - st.lastMoves[0].x) * 0.06 : 0)));
+                    apply(st);
+                    return;
+                }
+                if (st.mode === 'free') {
+                    var f = Math.exp(-FRICTION * dt);
+                    st.vx *= f; st.vy *= f;
+                    st.ox += st.vx * dt;
+                    st.oy += st.vy * dt;
+                    if (st.home) {
+                        var L = st.home.left + st.ox, T = st.home.top + st.oy;
+                        if (L < PAD) { st.ox = PAD - st.home.left; st.vx = Math.abs(st.vx) * RESTITUTION; }
+                        if (L + st.home.w > sw - PAD) { st.ox = sw - PAD - st.home.w - st.home.left; st.vx = -Math.abs(st.vx) * RESTITUTION; }
+                        if (T < PAD) { st.oy = PAD - st.home.top; st.vy = Math.abs(st.vy) * RESTITUTION; }
+                        if (T + st.home.h > sh - PAD) { st.oy = sh - PAD - st.home.h - st.home.top; st.vy = -Math.abs(st.vy) * RESTITUTION; }
+                    }
+                    st.rot = Math.max(-12, Math.min(12, st.vx * 0.02));
+                    if (Math.abs(st.vx) < 30 && Math.abs(st.vy) < 30) st.mode = 'home';
+                    apply(st);
+                    return;
+                }
+                if (st.mode === 'home') {
+                    st.vx += (-HOME_SPRING * st.ox - HOME_DAMP * st.vx) * dt;
+                    st.vy += (-HOME_SPRING * st.oy - HOME_DAMP * st.vy) * dt;
+                    st.ox += st.vx * dt;
+                    st.oy += st.vy * dt;
+                    st.rot *= (1 - Math.min(1, dt * 4));
+                    if (Math.abs(st.ox) < 1.5 && Math.abs(st.oy) < 1.5 &&
+                        Math.abs(st.vx) < 8 && Math.abs(st.vy) < 8) {
+                        st.ox = 0; st.oy = 0; st.vx = 0; st.vy = 0; st.rot = 0;
+                        st.mode = 'bob';
+                        st.el.style.zIndex = '';
+                    }
+                    apply(st);
+                    return;
+                }
+                // bob: gentle ambient float around home
+                st.ox = Math.sin(elapsed * st.speed + st.phase) * st.ampX;
+                st.oy = Math.cos(elapsed * st.speed * 0.8 + st.phase * 1.3) * st.ampY;
+                st.rot = Math.sin(elapsed * st.speed * 0.9 + st.phase) * 1.6;
+                apply(st);
+            });
+            requestAnimationFrame(loop);
+        }
+
+        var io = new IntersectionObserver(function(entries) {
+            entries.forEach(function(en) {
+                if (en.isIntersecting && !running) {
+                    running = true;
+                    requestAnimationFrame(loop);
+                } else if (!en.isIntersecting) {
+                    running = false;
+                }
+            });
+        }, { rootMargin: '60px 0px' });
+        io.observe(section);
+    })();
+    </script>
+
+<!-- Work disc yard: circular thumbnails that rain in, get thrown around, and play on click -->
+    <script>
+    (function() {
+        var yard = document.getElementById('cube-yard');
+        if (!yard) return;
+        yard.innerHTML = '<div class="yard-floor"></div>';
+
+        var ALL = ['rZFnZJ9jGR8','IfYaUFWIzlg','g8tvgvXKEA8','iWtr96jxALU','Gb0MAEP_RfE','_QGrXS9tjNs','6k2RtxQQYy8','hyQth5k_43k','c_tPZP08MMw','o5bqEXbkxmA','qH8Hcp03kq0','jOW0cvbJ1zU'];
+        var LOCAL_THUMB = { 'rZFnZJ9jGR8':'thumb-rZFnZJ9jGR8.jpg', 'hyQth5k_43k':'thumb-hyQth5k_43k.jpg', 'c_tPZP08MMw':'thumb-c_tPZP08MMw.jpg' };
+        var SKIP = 'o5bqEXbkxmA';
+        var FEATURED = 'IfYaUFWIzlg';
+        var FEATURED_FACES = ['images/take02-maxres1.jpg','images/take02-maxresdefault.jpg','images/take02-maxres2.jpg','images/take02-maxres3.jpg'];
+
+        var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        var GRAVITY = 2600, RESTITUTION = 0.42, FLOOR_FRICTION = 0.7;
+        var active = new Set();
+        var loopRunning = false, lastT = 0;
+
+        // deterministic per-cube jitter, stable across reloads
+        function jitter(i, salt) {
+            var x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
+            return x - Math.floor(x);
+        }
+
+        var entries = [];
+        ALL.forEach(function(id, i) {
+            if (id === SKIP) return;
+            entries.push({ id: id, take: String(i + 1).padStart(2, '0'), featured: id === FEATURED });
+        });
+
+        var W = yard.clientWidth, H = yard.clientHeight;
+        var isMobile = W < 768;
+
+        function place(st) {
+            st.el.style.left = st.x + 'px';
+            st.el.style.top = st.y + 'px';
+            st.el.style.transform = 'rotate(' + st.rot + 'deg)';
+        }
+
+        function playCube(st) {
+            if (st.zooming) return;
+            st.zooming = true;
+            st.falling = false;
+            active.delete(st);
+            st.el.style.zIndex = 60;
+            var scaler = st.el.querySelector('.cube-scaler');
+            var r = st.el.getBoundingClientRect();
+            var target = Math.min(3.4, (Math.min(window.innerWidth, window.innerHeight) * 0.55) / Math.max(1, r.width));
+            gsap.to(scaler, { scale: target, duration: 0.5, ease: 'power3.in' });
+            setTimeout(function() {
+                window.openWorkVideo(st.id);
+                setTimeout(function() {
+                    gsap.to(scaler, { scale: 1, duration: 0.5, ease: 'power3.out', onComplete: function() {
+                        st.el.style.zIndex = 5;
+                        st.zooming = false;
+                        st.falling = true;
+                        active.add(st);
+                        startLoop();
+                    }});
+                }, 450);
+            }, 430);
+        }
+
+        function dropFromSky(st, delayPx) {
+            st.x = Math.max(4, Math.min(W - st.size - 4, st.homeX));
+            st.y = -st.size - 60 - (delayPx || 0);
+            st.vx = (jitter(st.idx, 6) - 0.5) * 80;
+            st.vy = 0;
+            st.vr = (jitter(st.idx, 8) - 0.5) * 50;
+            st.el.style.visibility = 'visible';
+            st.falling = true;
+            active.add(st);
+            startLoop();
+        }
+
+        var cubes = entries.map(function(entry, idx) {
+            var size = entry.featured
+                ? (isMobile ? 104 : 150)
+                : (isMobile ? 60 : 90) + Math.round(jitter(idx, 1) * (isMobile ? 12 : 24));
+            var thumb = LOCAL_THUMB[entry.id] || ('https://img.youtube.com/vi/' + entry.id + '/hqdefault.jpg');
+            var img = entry.featured ? FEATURED_FACES[0] : thumb;
+
+            var wrap = document.createElement('div');
+            wrap.className = 'cube-wrap' + (entry.featured ? ' featured-wrap' : '');
+            wrap.style.width = size + 'px';
+            wrap.style.height = size + 'px';
+            wrap.style.visibility = 'hidden';
+            var html = '<div class="cube-scaler"><div class="disc' + (entry.featured ? ' featured' : '')
+                + '" style="--s:' + size + 'px; background-image:url(\'' + img + '\')">'
+                + '<span class="take-tag">Take ' + entry.take + '</span>'
+                + (entry.featured ? '<span class="latest-tag">Latest</span>' : '')
+                + '</div></div>';
+            wrap.innerHTML = html;
+            yard.appendChild(wrap);
+
+            var n = entries.length;
+            var homeX = ((idx + 0.5) / n) * (W - size) + (jitter(idx, 4) - 0.5) * 50;
+            var st = {
+                el: wrap, id: entry.id, idx: idx, size: size, homeX: homeX,
+                x: homeX, y: -size, vx: 0, vy: 0,
+                rot: (jitter(idx, 7) - 0.5) * 14, vr: 0,
+                floorLift: isMobile ? (idx % 2) * (size + 10) : 0,
+                grabbed: false, falling: false, zooming: false,
+                lastMoves: []
+            };
+
+            st.step = function(dt) {
+                if (st.grabbed) return true;
+                if (!st.falling) return false;
+                st.vy += GRAVITY * dt;
+                st.x += st.vx * dt;
+                st.y += st.vy * dt;
+                st.rot += st.vr * dt;
+
+                W = yard.clientWidth; H = yard.clientHeight;
+                var floor = H - st.size - 6 - st.floorLift;
+
+                if (st.y >= floor) {
+                    st.y = floor;
+                    if (Math.abs(st.vy) > 130) {
+                        st.vy = -st.vy * RESTITUTION;
+                        st.vx *= FLOOR_FRICTION;
+                        st.vr *= 0.5;
+                    } else {
+                        st.vy = 0;
+                        st.vx *= 0.85;
+                        st.vr *= 0.8;
+                        var flat = Math.round(st.rot / 360) * 360;
+                        st.rot += (flat - st.rot) * 0.15;
+                        if (Math.abs(st.vx) < 8) {
+                            st.rot = flat;
+                            st.falling = false;
+                        }
+                    }
+                }
+
+                // flew out the sides — rain back down a few seconds later
+                if (st.x < -st.size - 80 || st.x > W + 80) {
+                    st.falling = false;
+                    st.el.style.visibility = 'hidden';
+                    setTimeout(function() { dropFromSky(st, 0); }, 3500);
+                }
+
+                place(st);
+                return st.falling;
+            };
+
+            if (finePointer) {
+                wrap.addEventListener('pointerdown', function(e) {
+                    if (st.zooming) return;
+                    e.preventDefault();
+                    st.grabbed = true;
+                    st.falling = false;
+                    var yRect = yard.getBoundingClientRect();
+                    st.grabDX = e.clientX - (yRect.left + st.x);
+                    st.grabDY = e.clientY - (yRect.top + st.y);
+                    st.lastMoves = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+                    st.downAt = performance.now();
+                    st.downX = e.clientX; st.downY = e.clientY;
+                    wrap.setPointerCapture(e.pointerId);
+                    active.add(st);
+                    startLoop();
+                });
+                wrap.addEventListener('pointermove', function(e) {
+                    if (!st.grabbed) return;
+                    var yRect = yard.getBoundingClientRect();
+                    st.x = e.clientX - yRect.left - st.grabDX;
+                    st.y = e.clientY - yRect.top - st.grabDY;
+                    st.lastMoves.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+                    if (st.lastMoves.length > 6) st.lastMoves.shift();
+                    place(st);
+                });
+                wrap.addEventListener('pointerup', function(e) {
+                    if (!st.grabbed) return;
+                    st.grabbed = false;
+                    var now = performance.now();
+                    var quickTap = (now - st.downAt < 280) &&
+                        Math.abs(e.clientX - st.downX) < 6 && Math.abs(e.clientY - st.downY) < 6;
+                    if (quickTap) {
+                        playCube(st);
+                        return;
+                    }
+                    var m = st.lastMoves;
+                    var a = m[0], b = m[m.length - 1];
+                    var dt = Math.max(0.016, (b.t - a.t) / 1000);
+                    st.vx = (b.x - a.x) / dt;
+                    st.vy = (b.y - a.y) / dt;
+                    st.vr = st.vx * 0.06 + (Math.random() - 0.5) * 40;
+                    st.falling = true;
+                    startLoop();
+                });
+            } else {
+                wrap.addEventListener('click', function() { playCube(st); });
+            }
+
+            return st;
+        });
+
+        function loop(t) {
+            if (!lastT) lastT = t;
+            var dt = Math.min(0.033, (t - lastT) / 1000);
+            lastT = t;
+            var anyAlive = false;
+            active.forEach(function(st) {
+                var alive = st.step(dt);
+                if (!alive && !st.grabbed && !st.falling) active.delete(st);
+                else anyAlive = true;
+            });
+            if (anyAlive) {
+                requestAnimationFrame(loop);
+            } else {
+                loopRunning = false;
+                lastT = 0;
+            }
+        }
+        function startLoop() {
+            if (loopRunning) return;
+            loopRunning = true;
+            lastT = 0;
+            requestAnimationFrame(loop);
+        }
+
+        // rain the discs in the first time the yard scrolls into view
+        var dropped = false;
+        var io = new IntersectionObserver(function(ents) {
+            ents.forEach(function(ent) {
+                if (!ent.isIntersecting || dropped) return;
+                dropped = true;
+                cubes.forEach(function(st, i) {
+                    dropFromSky(st, i * 110 + jitter(i, 9) * 70);
+                });
+                io.disconnect();
+            });
+        }, { threshold: 0.2 });
+        io.observe(yard);
     })();
     </script>
 
