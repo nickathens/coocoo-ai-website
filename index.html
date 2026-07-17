@@ -141,17 +141,28 @@
             opacity: 0.7;
         }
 
-        /* Nav pixel logo */
-        .nav-logo-wrap .nav-letter {
+        /* Nav pixel logo — CooCoo ring mark (timelines spacing), TV-static fill like the O portals */
+        .nav-rings-wrap {
+            position: relative;
             display: inline-block;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            background-size: cover;
+            width: 36.7px;
+            height: 26px;
+        }
+        .nav-ring {
+            position: absolute;
+            top: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-size: 300%;
             background-position: center;
             image-rendering: pixelated;
             opacity: 0.85;
+            -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 2.5px), #000 calc(100% - 1.5px));
+            mask: radial-gradient(closest-side, transparent calc(100% - 2.5px), #000 calc(100% - 1.5px));
         }
+        .nav-ring-gold { left: 0; background-image: var(--tv-static); }
+        .nav-ring-ink { left: 10.7px; background-image: var(--tv-static-white); }
 
         /* O scene portals — one full-letter circle per O, gold-ringed, positioned by JS */
         .o-scene {
@@ -507,8 +518,9 @@
     <!-- ========== NAVIGATION ========== -->
     <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md content-layer" id="nav">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <a href="#" class="select-none nav-logo-wrap inline-flex text-lg font-semibold tracking-tighter">
-                <span class="nav-letter">C</span><span class="nav-letter">o</span><span class="nav-letter">o</span><span class="nav-letter">C</span><span class="nav-letter">o</span><span class="nav-letter">o</span>
+            <a href="#" class="select-none nav-rings-wrap" aria-label="CooCoo AI">
+                <span class="nav-ring nav-ring-gold"></span>
+                <span class="nav-ring nav-ring-ink"></span>
             </a>
             <div class="flex items-center gap-8">
                 <a href="#work" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors hidden md:block">Work</a>
@@ -1446,9 +1458,7 @@
     (function() {
         const wrap = document.querySelector('.coocoo-tv-wrap');
         const heroLetters = wrap ? wrap.querySelectorAll('.letter-bounce') : [];
-        const navLetters = document.querySelectorAll('.nav-logo-wrap .nav-letter');
-        const allLetters = [...heroLetters, ...navLetters];
-        if (!allLetters.length) return;
+        const allLetters = [...heroLetters];
 
         const noiseW = 32;
         const noiseH = 32;
@@ -1460,8 +1470,17 @@
         const data = imageData.data;
         const totalPixels = noiseW * noiseH;
 
+        // Second texture: white static for the ink ring of the nav mark
+        const offscreenW = document.createElement('canvas');
+        offscreenW.width = noiseW;
+        offscreenW.height = noiseH;
+        const offCtxW = offscreenW.getContext('2d');
+        const imageDataW = offCtxW.createImageData(noiseW, noiseH);
+        const dataW = imageDataW.data;
+
         for (let i = 0; i < totalPixels; i++) {
             data[i * 4 + 3] = 255;
+            dataW[i * 4 + 3] = 255;
         }
 
         const fps = 10;
@@ -1479,15 +1498,19 @@
                 data[idx]     = (120 + t * 125) | 0;
                 data[idx + 1] = (80 + t * 100) | 0;
                 data[idx + 2] = (20 + t * 60) | 0;
+                const w = (130 + Math.random() * 125) | 0;
+                dataW[idx] = dataW[idx + 1] = dataW[idx + 2] = w;
             }
             offCtx.putImageData(imageData, 0, 0);
+            offCtxW.putImageData(imageDataW, 0, 0);
             const url = offscreen.toDataURL();
             const bg = 'url(' + url + ')';
             for (let i = 0; i < allLetters.length; i++) {
                 allLetters[i].style.backgroundImage = bg;
             }
-            // Feed the same static into the O portal rings
+            // Feed the same static into the O portal rings and the nav ring mark
             document.documentElement.style.setProperty('--tv-static', bg);
+            document.documentElement.style.setProperty('--tv-static-white', 'url(' + offscreenW.toDataURL() + ')');
         }
 
         requestAnimationFrame(animate);
